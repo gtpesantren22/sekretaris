@@ -29,7 +29,7 @@
 <body class="hold-transition register-page">
   <div class="register-box">
     <div class="register-logo">
-      <a href="index2.html"><b>Admin</b>LTE</a>
+      <a href="#"><img src="dist/img/SipasTren.png" alt="" width="300px"></a>
     </div>
 
     <div class="register-box-body">
