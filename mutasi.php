@@ -62,11 +62,30 @@
                           <a class="btn btn-danger btn-xs" onclick="return confirm('Yakin akan dihapus ?')" href="<?= 'hapus.php?kd=mts&id=' . $dt['id_mutasi']; ?>"><i class="fa fa-trash"></i></a>
 
                         <?php } elseif ($dt['status'] == 1) { ?>
-                          <form action="" method="post">
-                            <input type="hidden" name="id_mutasi" value="<?= $dt['id_mutasi']; ?>">
-                            <a class="btn btn-danger btn-xs" onclick="return confirm('Yakin akan dihapus ?')" href="<?= 'hapus.php?kd=mts&id=' . $dt['id_mutasi']; ?>"><i class="fa fa-trash"></i></a>
-                            <button class="btn btn-xs btn-primary" type="submit" name="send"><i class="fa fa-send"></i> kirim</button>
-                          </form>
+
+                          <a class="btn btn-danger btn-xs" onclick="return confirm('Yakin akan dihapus ?')" href="<?= 'hapus.php?kd=mts&id=' . $dt['id_mutasi']; ?>"><i class="fa fa-trash"></i></a>
+                          <button class="btn btn-xs btn-primary" data-toggle="modal" data-target="#smallModal"><i class="fa fa-send"></i> kirim</button>
+                          <div class="modal fade" id="smallModal" tabindex="-1" role="dialog" aria-labelledby="smallModal" aria-hidden="true">
+                            <div class="modal-dialog modal-sm">
+                              <div class="modal-content">
+                                <div class="modal-header">
+                                  <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                                  <h4 class="modal-title" id="myModalLabel">Kirim Data</h4>
+                                </div>
+                                <form action="" method="post">
+                                  <input type="hidden" name="id_mutasi" value="<?= $dt['id_mutasi']; ?>">
+                                  <div class="modal-body">
+                                    <h3>Yakin akan diteruskan ?</h3>
+                                    <p>Fitur ini akan mengirim data kepada admin D'Pontren untuk selanjutnya data ini akan dikeluarkan dari data santri aktif</p>
+                                  </div>
+                                  <div class="modal-footer">
+                                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                                    <button type="submit" name="send" class="btn btn-primary">Ya. Kirim pon!</button>
+                                  </div>
+                                </form>
+                              </div>
+                            </div>
+                          </div>
                         <?php } elseif ($dt['status'] == 2) {
                         } ?>
                       </td>
@@ -113,7 +132,39 @@ if (isset($_POST['send'])) {
   $sql = mysqli_query($conn, "UPDATE mutasi SET status = 2 WHERE id_mutasi = '$id_mutasi' ");
   $sql2 = mysqli_query($conn_santri, "UPDATE mutasi SET status = 2 WHERE id_mutasi = '$id_mutasi' ");
 
+  $dts = mysqli_fetch_assoc(mysqli_query($conn, "SELECT a.tgl_mutasi, b.* FROM mutasi a JOIN tb_santri b ON a.nis=b.nis WHERE a.id_mutasi = $id_mutasi "));
+  $psn = '*INFORMASI MUTASI*
+
+Atas nama :
+    
+Nama : ' . $dts['nama'] . '
+Alamat : ' . $dts['desa'] . '-' . $dts['kec'] . '-' . $dts['kab'] . '
+Sekolah : ' . $dts['t_formal'] . '
+Tgl Mutasi : ' .  $dts['tgl_mutasi'] . '
+
+*_Surat mutasi sudah diterbitkan oleh SEKRETARIAT. Santri sudah resmi mutasi. Untuk selanjutnya kepada admin DPontren untuk mengeluarkan data santri diatas_*
+Terimakasih';
+
   if ($sql2 && $sql) {
+
+    $curl2 = curl_init();
+    curl_setopt_array(
+      $curl2,
+      array(
+        CURLOPT_URL => 'http://8.215.26.187:3000/api/sendMessageGroup',
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_ENCODING => '',
+        CURLOPT_MAXREDIRS => 10,
+        CURLOPT_TIMEOUT => 0,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+        CURLOPT_CUSTOMREQUEST => 'POST',
+        CURLOPT_POSTFIELDS => 'apiKey=fb209be1f23625e43cbf285e57c0c0f2&id_group=CnbjJ9vz2Dh7KkNzI3769h&message=' . $psn,
+      )
+    );
+    $response = curl_exec($curl2);
+    curl_close($curl2);
+
     echo "
             <script>
                 Swal.fire({

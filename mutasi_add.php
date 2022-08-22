@@ -143,9 +143,22 @@ if (isset($_POST['simpan'])) {
   $alasan = htmlspecialchars(mysqli_real_escape_string($conn, $_POST['alasan']));
   $tgl_mutasi = htmlspecialchars(mysqli_real_escape_string($conn, $_POST['tgl_mutasi']));
 
-  $cek = mysqli_num_rows(mysqli_query($conn, "SELECT * FROM mutasi WHERE nis = '$nis' "));
+  $cek = mysqli_query($conn, "SELECT * FROM mutasi WHERE nis = '$nis' ");
+  $dts = mysqli_fetch_assoc(mysqli_query($conn, "SELECT * FROM tb_santri WHERE nis = '$nis' "));
 
-  if ($cek > 0) {
+  $psn = '*INFORMASI MUTASI BARU*
+
+Atas nama :
+    
+Nama : ' . $dts['nama'] . '
+Alamat : ' . $dts['desa'] . '-' . $dts['kec'] . '-' . $dts['kab'] . '
+Sekolah : ' . $dts['t_formal'] . '
+Tgl Mutasi : ' . $tgl_mutasi . '
+
+*_dimohon kepada BENDAHARA PESANTREN untuk segera mengecek tanggungan nya_*
+Terimakasih';
+
+  if (mysqli_num_rows($cek) > 0) {
     echo "
       <script>
         Swal.fire({
@@ -159,6 +172,25 @@ if (isset($_POST['simpan'])) {
     $sql = mysqli_query($conn, "INSERT INTO mutasi VALUES ('', '$nis', '$alasan', '$tgl_mutasi', 0, '2022/2023') ");
     $sql2 = mysqli_query($conn_santri, "INSERT INTO mutasi VALUES ('', '$nis', '$alasan', '$tgl_mutasi', 0, '2022/2023') ");
     if ($sql && $sql2) {
+
+      $curl2 = curl_init();
+      curl_setopt_array(
+        $curl2,
+        array(
+          CURLOPT_URL => 'http://8.215.26.187:3000/api/sendMessageGroup',
+          CURLOPT_RETURNTRANSFER => true,
+          CURLOPT_ENCODING => '',
+          CURLOPT_MAXREDIRS => 10,
+          CURLOPT_TIMEOUT => 0,
+          CURLOPT_FOLLOWLOCATION => true,
+          CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+          CURLOPT_CUSTOMREQUEST => 'POST',
+          CURLOPT_POSTFIELDS => 'apiKey=fb209be1f23625e43cbf285e57c0c0f2&id_group=CnbjJ9vz2Dh7KkNzI3769h&message=' . $psn,
+        )
+      );
+      $response = curl_exec($curl2);
+      curl_close($curl2);
+
       echo "
       <script>
       Swal.fire({
