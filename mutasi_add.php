@@ -148,7 +148,7 @@ if (isset($_POST['simpan'])) {
 
   $psn = '*INFORMASI MUTASI BARU*
 
-Atas nama :
+*PERMOHONAN PENGECEKAN TANGGUNGAN SANTRI*
     
 Nama : ' . $dts['nama'] . '
 Alamat : ' . $dts['desa'] . '-' . $dts['kec'] . '-' . $dts['kab'] . '
