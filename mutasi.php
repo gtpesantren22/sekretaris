@@ -135,7 +135,7 @@ if (isset($_POST['send'])) {
   $dts = mysqli_fetch_assoc(mysqli_query($conn, "SELECT a.tgl_mutasi, b.* FROM mutasi a JOIN tb_santri b ON a.nis=b.nis WHERE a.id_mutasi = $id_mutasi "));
   $psn = '*INFORMASI MUTASI*
 
-*PENERBITAN SURAT BERHENTI*
+*PERMOHONAN PENGELUARAN DATA SANTRI*
     
 Nama : ' . $dts['nama'] . '
 Alamat : ' . $dts['desa'] . '-' . $dts['kec'] . '-' . $dts['kab'] . '
