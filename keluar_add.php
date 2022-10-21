@@ -19,8 +19,7 @@
                 <div class="box">
                     <div class="box-header">
                         <h3 class="box-title">Data Surat Keluar</h3>
-                        <button class="btn btn-success btn-flat btn-sm pull-right"><i class="fa fa-plus"></i> Tambah
-                            Surat Keluar</button>
+                        
                     </div><!-- /.box-header -->
                     <div class="box-body">
                         <form class="form-horizontal form-label-left" method="post" enctype="multipart/form-data">
@@ -52,7 +51,6 @@
                                 <div class="col-md-6 col-sm-6 col-xs-12">
                                     <input type="date" name="tanggal_kirim" class="form-control has-feedback-left"
                                         id="tanggal">
-                                    <span class="fa fa-calendar-o form-control-feedback left" aria-hidden="true"></span>
                                 </div>
                             </div>
                             <div class="item form-group">
@@ -126,8 +124,10 @@ if (isset($_REQUEST['submit'])) {
     $tujuan         = htmlspecialchars(mysqli_real_escape_string($conn, $_POST['tujuan']));
     $isi_ringkas    = htmlspecialchars(mysqli_real_escape_string($conn, $_POST['isi_ringkas']));
     $pub    = $_POST['pub'];
-    $kode = password_hash($no_surat, PASSWORD_BCRYPT);
-    $isi = 'https://surat.ppdwk.com/resmi/' . password_hash($no_surat, PASSWORD_BCRYPT);
+
+    $permitted_chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    $kode = substr(str_shuffle($permitted_chars), 0, 64);
+    $isi = 'https://surat.ppdwk.com/resmi/' . $kode;
 
     $penyimpanan = "upload/QR-Code/";
     $nm_qr = 'qr-' . rand(0, 999999999) . '.png';

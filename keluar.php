@@ -19,8 +19,7 @@
                 <div class="box">
                     <div class="box-header">
                         <h3 class="box-title">Data Surat Keluar</h3>
-                        <a href="keluar_add.php" class="btn btn-success btn-flat btn-sm pull-right"><i
-                                class="fa fa-plus"></i> Tambah
+                        <a href="keluar_add.php" class="btn btn-success btn-flat btn-sm pull-right"><i class="fa fa-plus"></i> Tambah
                             Surat Keluar</a>
                     </div><!-- /.box-header -->
                     <div class="box-body">
@@ -54,41 +53,26 @@
                                         $sql  = mysqli_query($conn, $query);
                                         while ($data = mysqli_fetch_array($sql)) {
                                         ?>
-                                        <td width="1" style="vertical-align: middle;"><?= $no++; ?></td>
-                                        <td style="vertical-align: middle;"><?= $data['no_surat'] ?></td>
-                                        <td style="vertical-align: middle;"><?= $data['isi_ringkas'] ?></td>
-                                        <td style="vertical-align: middle;"><?= $data['tujuan'] ?></td>
-                                        <td style="vertical-align: middle;"><?= ($data['tanggal_kirim']) ?></td>
-                                        <td>
-                                            <div class="btn-group btn-flat">
-                                                <?php if ($data['file'] != '-') { ?>
-                                                <a href="upload/surat_keluar/<?= $data['file'] ?>"
-                                                    class="btn btn-primary btn-xs" title="Download Berkas"><i
-                                                        class="fa fa-download"></i></a>
-                                                <?php } else { ?>
-                                                <button class="btn btn-primary btn-xs" title="Download Berkas"
-                                                    disabled><i class="fa fa-download"></i></button>
-                                                <?php } ?>
-                                                <button data-toggle="modal"
-                                                    data-target=".bs-example-modal-lg<?= $data['id_keluar']; ?>"
-                                                    class="btn btn-success btn-xs" title="Upload Berkas"><i
-                                                        class="fa fa-upload"></i></button>
-                                                <a href="hapus_surat_keluar.php?id=<?= $data['id_keluar'] ?>"
-                                                    class="btn btn-primary btn-xs" title="Download QR Code"
-                                                    onclick="return confirm('Yakin akan dihapus ?')"><i
-                                                        class="fa fa-qrcode"></i></a>
-                                                <a href="index.php?page=edit_surat_keluar?id=<?= $data['id_keluar']; ?>"
-                                                    class="btn btn-warning btn-xs" title="Edit"><i
-                                                        class="fa fa-pencil-square-o"></i></a>
-                                                <a href="hapus_surat_keluar.php?id=<?= $data['id_keluar'] ?>"
-                                                    class="btn btn-danger btn-xs" title="Hapus"
-                                                    onclick="return confirm('Yakin akan dihapus ?')"><i
-                                                        class="fa fa-trash-o"></i></a>
-                                            </div>
-                                        </td>
+                                            <td width="1" style="vertical-align: middle;"><?= $no++; ?></td>
+                                            <td style="vertical-align: middle;"><?= $data['no_surat'] ?></td>
+                                            <td style="vertical-align: middle;"><?= $data['isi_ringkas'] ?></td>
+                                            <td style="vertical-align: middle;"><?= $data['tujuan'] ?></td>
+                                            <td style="vertical-align: middle;"><?= ($data['tanggal_kirim']) ?></td>
+                                            <td>
+                                                <div class="btn-group btn-flat">
+                                                    <?php if ($data['file'] != '-') { ?>
+                                                        <a href="upload/surat_keluar/<?= $data['file'] ?>" class="btn btn-primary btn-xs" title="Download Berkas"><i class="fa fa-download"></i></a>
+                                                    <?php } else { ?>
+                                                        <button class="btn btn-primary btn-xs" title="Download Berkas" disabled><i class="fa fa-download"></i></button>
+                                                    <?php } ?>
+                                                    <button data-toggle="modal" data-target=".bs-example-modal-lg<?= $data['id_keluar']; ?>" class="btn btn-success btn-xs" title="Upload Berkas"><i class="fa fa-upload"></i></button>
+                                                    <a href="download.php?filename=<?= $data['nm_qr'] ?>" class="btn btn-primary btn-xs" title="Download QR Code"><i class="fa fa-qrcode"></i></a>
+                                                    <a href="index.php?page=edit_surat_keluar?id=<?= $data['id_keluar']; ?>" class="btn btn-warning btn-xs" title="Edit"><i class="fa fa-pencil-square-o"></i></a>
+                                                    <a href="hapus_surat_keluar.php?id=<?= $data['id_keluar'] ?>" class="btn btn-danger btn-xs" title="Hapus" onclick="return confirm('Yakin akan dihapus ?')"><i class="fa fa-trash-o"></i></a>
+                                                </div>
+                                            </td>
                                     </tr>
-                                    <div class="modal fade bs-example-modal-lg<?= $data['id_keluar']; ?>" tabindex="-1"
-                                        role="dialog" aria-hidden="true">
+                                    <div class="modal fade bs-example-modal-lg<?= $data['id_keluar']; ?>" tabindex="-1" role="dialog" aria-hidden="true">
                                         <div class="modal-dialog modal-lg">
                                             <div class="modal-content">
                                                 <div class="modal-header">
@@ -96,28 +80,23 @@
                                                         Keluar</h4>
                                                 </div>
                                                 <form action="" method="post" enctype="multipart/form-data">
-                                                    <input type="hidden" name="id_keluar"
-                                                        value="<?= $data['id_keluar']; ?>">
-                                                    <input type="hidden" name="no_surat"
-                                                        value="<?= $data['no_surat']; ?>">
+                                                    <input type="hidden" name="id_keluar" value="<?= $data['id_keluar']; ?>">
+                                                    <input type="hidden" name="no_surat" value="<?= $data['no_surat']; ?>">
                                                     <div class="modal-body">
                                                         <h4>Unggah Berkas</h4>
                                                         <div class="form-group">
-                                                            <input type="file" name="berkas" id="" class="form-control"
-                                                                required>
+                                                            <input type="file" name="berkas" id="" class="form-control" required>
                                                         </div>
                                                     </div>
                                                     <div class="modal-footer">
-                                                        <button type="button" class="btn btn-secondary"
-                                                            data-dismiss="modal">Close</button>
-                                                        <button type="submit" name="upload"
-                                                            class="btn btn-primary">Simpan</button>
+                                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                                        <button type="submit" name="upload" class="btn btn-primary">Simpan</button>
                                                     </div>
                                                 </form>
                                             </div>
                                         </div>
                                     </div>
-                                    <?php
+                                <?php
                                         }
                                 ?>
                                 </tbody>
@@ -140,17 +119,17 @@
 <script src="plugins/datatables/jquery.dataTables.min.js"></script>
 <script src="plugins/datatables/dataTables.bootstrap.min.js"></script>
 <script>
-$(function() {
-    $("#example1_bst").DataTable();
-    $('#example2').DataTable({
-        "paging": true,
-        "lengthChange": false,
-        "searching": false,
-        "ordering": true,
-        "info": true,
-        "autoWidth": false
+    $(function() {
+        $("#example1_bst").DataTable();
+        $('#example2').DataTable({
+            "paging": true,
+            "lengthChange": false,
+            "searching": false,
+            "ordering": true,
+            "info": true,
+            "autoWidth": false
+        });
     });
-});
 </script>
 <?php
 include 'foot.php';
