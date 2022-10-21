@@ -127,11 +127,12 @@ if (isset($_REQUEST['submit'])) {
     $isi_ringkas    = htmlspecialchars(mysqli_real_escape_string($conn, $_POST['isi_ringkas']));
     $pub    = $_POST['pub'];
     $kode = password_hash($no_surat, PASSWORD_BCRYPT);
+    $isi = 'https://surat.ppdwk.com/resmi/' . password_hash($no_surat, PASSWORD_BCRYPT);
 
     $penyimpanan = "upload/QR-Code/";
-    $nm_qr = 'qr-' . rand(0, 999999999);
+    $nm_qr = 'qr-' . rand(0, 999999999) . '.png';
     $cek = mysqli_num_rows(mysqli_query($conn, "SELECT * FROM surat_keluar WHERE no_surat = '$no_surat' "));
-    QRcode::png($kode, $penyimpanan . $no_surat . '.png', QR_ECLEVEL_H, 10, 5);
+    QRcode::png($isi, $penyimpanan . $nm_qr, QR_ECLEVEL_H, 10, 5);
 
     // echo QRcode::png($kode);
 
@@ -141,7 +142,7 @@ if (isset($_REQUEST['submit'])) {
     				window.location.href="keluar_add.php";
     			  </script>';
     } else {
-        $query         = "INSERT INTO surat_keluar VALUES('', '$no_surat',  '$tanggal_kirim', '$tujuan', '$isi_ringkas', '$kode', '$pub', '-')";
+        $query         = "INSERT INTO surat_keluar VALUES('', '$no_surat',  '$tanggal_kirim', '$tujuan', '$isi_ringkas', '$kode', '$nm_qr', '$pub', '-')";
         $sql        = mysqli_query($conn, $query);
         if ($sql) {
             echo '<script>
