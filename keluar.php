@@ -42,6 +42,9 @@
                                             <center> Tanggal Surat</center>
                                         </th>
                                         <th style="vertical-align: middle;">
+                                            <center> Pulish</center>
+                                        </th>
+                                        <th style="vertical-align: middle;">
                                             <center>Action</center>
                                         </th>
                                     </tr>
@@ -59,7 +62,10 @@
                                         <td style="vertical-align: middle;"><?= $data['isi_ringkas'] ?></td>
                                         <td style="vertical-align: middle;"><?= $data['tujuan'] ?></td>
                                         <td style="vertical-align: middle;"><?= ($data['tanggal_kirim']) ?></td>
+                                        <td style="vertical-align: middle; font-weight: bold;"><?= ($data['publish']) ?>
+                                        </td>
                                         <td>
+
                                             <div class="btn-group btn-flat">
                                                 <?php if ($data['file'] != '-') { ?>
                                                 <a href="upload/surat_keluar/<?= $data['file'] ?>"
@@ -73,11 +79,13 @@
                                                     data-target=".bs-example-modal-lg<?= $data['id_keluar']; ?>"
                                                     class="btn btn-success btn-xs" title="Upload Berkas"><i
                                                         class="fa fa-upload"></i></button>
-                                                <a href="hapus_surat_keluar.php?id=<?= $data['id_keluar'] ?>"
-                                                    class="btn btn-primary btn-xs" title="Download QR Code"
-                                                    onclick="return confirm('Yakin akan dihapus ?')"><i
+                                                <a href="download.php?filename=<?= $data['nm_qr'] ?>"
+                                                    class="btn btn-info btn-xs" title="Download QR Code"><i
                                                         class="fa fa-qrcode"></i></a>
-                                                <a href="index.php?page=edit_surat_keluar?id=<?= $data['id_keluar']; ?>"
+                                                <a href="download.php?filename=<?= $data['nm_qr'] ?>"
+                                                    class="btn bg-navy btn-xs" title="Publish"><i
+                                                        class="fa fa-share"></i></a>
+                                                <a href="keluar_edit.php?id=<?= $data['id_keluar']; ?>"
                                                     class="btn btn-warning btn-xs" title="Edit"><i
                                                         class="fa fa-pencil-square-o"></i></a>
                                                 <a href="hapus_surat_keluar.php?id=<?= $data['id_keluar'] ?>"
@@ -154,6 +162,7 @@ $(function() {
 </script>
 <?php
 include 'foot.php';
+
 
 if (isset($_POST['upload'])) {
     $id = $_POST['id_keluar'];
