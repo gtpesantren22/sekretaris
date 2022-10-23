@@ -62,7 +62,8 @@
                                         <td style="vertical-align: middle;"><?= $data['isi_ringkas'] ?></td>
                                         <td style="vertical-align: middle;"><?= $data['tujuan'] ?></td>
                                         <td style="vertical-align: middle;"><?= ($data['tanggal_kirim']) ?></td>
-                                        <td style="vertical-align: middle; font-weight: bold;"><?= ($data['publish']) ?>
+                                        <td style="vertical-align: middle; font-weight: bold;">
+                                            <?= ($data['publish']) ?>
                                         </td>
                                         <td>
 
@@ -94,6 +95,7 @@
                                                         class="fa fa-trash-o"></i></a>
                                             </div>
                                         </td>
+
                                     </tr>
                                     <div class="modal fade bs-example-modal-lg<?= $data['id_keluar']; ?>" tabindex="-1"
                                         role="dialog" aria-hidden="true">

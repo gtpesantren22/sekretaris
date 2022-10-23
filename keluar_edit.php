@@ -1,4 +1,11 @@
-<?php include 'head.php'; ?>
+<?php
+include 'head.php';
+
+$id = $_GET['id'];
+$dts = mysqli_fetch_assoc(mysqli_query($conn, "SELECT * FROM surat_keluar WHERE id_keluar = $id "));
+
+
+?>
 <div class="content-wrapper">
     <!-- Content Header (Page header) -->
     <section class="content-header">
@@ -19,15 +26,14 @@
                 <div class="box">
                     <div class="box-header">
                         <h3 class="box-title">Data Surat Keluar</h3>
+
                     </div><!-- /.box-header -->
                     <div class="box-body">
                         <form class="form-horizontal form-label-left" method="post" enctype="multipart/form-data">
                             <div class="item form-group">
-                                <label class="control-label col-md-3 col-sm-3 col-xs-12">No. Surat<span
-                                        class="required">&nbsp; :</span></label>
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12">No. Surat<span class="required">&nbsp; :</span></label>
                                 <div class="col-md-6 col-sm-6 col-xs-12">
-                                    <input type="text" name="no_surat" class="form-control col-md-7 col-xs-12"
-                                        required="required">
+                                    <input type="text" name="no_surat" class="form-control col-md-7 col-xs-12" value="<?= $dts['no_surat'] ?>" required="required">
                                 </div>
                             </div>
                             <!-- <div class="item form-group">
@@ -45,35 +51,28 @@
                                 </div>
                             </div> -->
                             <div class="item form-group">
-                                <label class="control-label col-md-3 col-sm-3 col-xs-12">Tanggal Surat<span
-                                        class="required">&nbsp; :</span></label>
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12">Tanggal Surat<span class="required">&nbsp; :</span></label>
                                 <div class="col-md-6 col-sm-6 col-xs-12">
-                                    <input type="date" name="tanggal_kirim" class="form-control has-feedback-left"
-                                        id="tanggal">
+                                    <input type="date" name="tanggal_kirim" class="form-control has-feedback-left" value="<?= $dts['tanggal_kirim'] ?>" id="tanggal">
                                 </div>
                             </div>
                             <div class="item form-group">
-                                <label class="control-label col-md-3 col-sm-3 col-xs-12">Tujuan<span
-                                        class="required">&nbsp; :</span></label>
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12">Tujuan<span class="required">&nbsp; :</span></label>
                                 <div class="col-md-6 col-sm-6 col-xs-12">
-                                    <input type="text" name="tujuan" class="form-control col-md-7 col-xs-12"
-                                        required="required">
+                                    <input type="text" name="tujuan" class="form-control col-md-7 col-xs-12" required="required" value="<?= $dts['tujuan'] ?>">
                                 </div>
                             </div>
                             <div class="item form-group">
-                                <label class="control-label col-md-3 col-sm-3 col-xs-12">Perihal<span
-                                        class="required">&nbsp; :</span></label>
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12">Perihal<span class="required">&nbsp; :</span></label>
                                 <div class="col-md-6 col-sm-6 col-xs-12">
-                                    <textarea name="isi_ringkas" class="form-control col-md-7 col-xs-12"
-                                        required="required"></textarea>
+                                    <textarea name="isi_ringkas" class="form-control col-md-7 col-xs-12" required="required"> <?= $dts['isi_ringkas'] ?></textarea>
                                 </div>
                             </div>
                             <div class="item form-group">
-                                <label class="control-label col-md-3 col-sm-3 col-xs-12">Publish<span
-                                        class="required">&nbsp; :</span></label>
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12">Publish<span class="required">&nbsp; :</span></label>
                                 <div class="col-md-6 col-sm-6 col-xs-12">
-                                    <input type="radio" name="pub" id="" value="YA"> YA
-                                    <input type="radio" name="pub" id="" value="TIDAK"> TIDAK
+                                    <input type="radio" name="pub" id="" value="YA" <?= $dts['publish'] === 'YA' ? 'checked' : '' ?>> YA
+                                    <input type="radio" name="pub" id="" value="TIDAK" <?= $dts['publish'] === 'TIDAK' ? 'checked' : '' ?>> TIDAK
                                 </div>
                             </div>
                             <div class="ln_solid"></div>
@@ -101,17 +100,17 @@
 <script src="plugins/datatables/jquery.dataTables.min.js"></script>
 <script src="plugins/datatables/dataTables.bootstrap.min.js"></script>
 <script>
-$(function() {
-    $("#example1_bst").DataTable();
-    $('#example2').DataTable({
-        "paging": true,
-        "lengthChange": false,
-        "searching": false,
-        "ordering": true,
-        "info": true,
-        "autoWidth": false
+    $(function() {
+        $("#example1_bst").DataTable();
+        $('#example2').DataTable({
+            "paging": true,
+            "lengthChange": false,
+            "searching": false,
+            "ordering": true,
+            "info": true,
+            "autoWidth": false
+        });
     });
-});
 </script>
 <?php
 include 'foot.php';
@@ -124,24 +123,10 @@ if (isset($_REQUEST['submit'])) {
     $isi_ringkas    = htmlspecialchars(mysqli_real_escape_string($conn, $_POST['isi_ringkas']));
     $pub    = $_POST['pub'];
 
-    $permitted_chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    $kode = substr(str_shuffle($permitted_chars), 0, 64);
-    $isi = 'https://surat.ppdwk.com/resmi/' . $kode;
-
-    $penyimpanan = "upload/QR-Code/";
-    $nm_qr = 'qr-' . rand(0, 999999999) . '.png';
-    $cek = mysqli_num_rows(mysqli_query($conn, "SELECT * FROM surat_keluar WHERE no_surat = '$no_surat' "));
-    QRcode::png($isi, $penyimpanan . $nm_qr, QR_ECLEVEL_H, 10, 5);
-
     // echo QRcode::png($kode);
 
-    if ($cek > 0) {
-        echo '<script>
-    				window.alert("Maaf No Surat Sudah Terpakai");
-    				window.location.href="keluar_add.php";
-    			  </script>';
-    } else {
-        $query         = "INSERT INTO surat_keluar VALUES('', '$no_surat',  '$tanggal_kirim', '$tujuan', '$isi_ringkas', '$kode', '$nm_qr', '$pub', '-')";
+    
+        $query         = "UPDATE surat_keluar SET no_surat = '$no_surat', tanggal_kirim = '$tanggal_kirim', tujuan = '$tujuan', isi_ringkas = '$isi_ringkas', publish = '$pub' WHERE id_keluar = $id ";
         $sql        = mysqli_query($conn, $query);
         if ($sql) {
             echo '<script>
@@ -153,7 +138,7 @@ if (isset($_REQUEST['submit'])) {
     				window.alert("Data gagal di simpan");
     			  </script>';
         }
-    }
+    
 }
 
 ?>
