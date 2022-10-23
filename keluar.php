@@ -63,34 +63,19 @@
                                             <td style="vertical-align: middle;"><?= ($data['tanggal_kirim']) ?></td>
                                             <td style="vertical-align: middle; font-weight: bold;"><?= ($data['publish']) ?></td>
                                             <td>
-                                                <!-- Split button -->
-                                                <div class="btn-group">
-                                                    <button type="button" class="btn btn-danger">Action</button>
-                                                    <button type="button" class="btn btn-danger dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                                        <span class="caret"></span>
-                                                        <span class="sr-only">Toggle Dropdown</span>
-                                                    </button>
-                                                    <ul class="dropdown-menu">
-                                                        <li><a href="#">Action</a></li>
-                                                        <li><a href="#">Another action</a></li>
-                                                        <li><a href="#">Something else here</a></li>
-                                                        <li role="separator" class="divider"></li>
-                                                        <li><a href="#">Separated link</a></li>
-                                                    </ul>
-                                                </div>
 
-
-                                                <!-- <div class="btn-group btn-flat">
+                                                <div class="btn-group btn-flat">
                                                     <?php if ($data['file'] != '-') { ?>
                                                         <a href="upload/surat_keluar/<?= $data['file'] ?>" class="btn btn-primary btn-xs" title="Download Berkas"><i class="fa fa-download"></i></a>
                                                     <?php } else { ?>
                                                         <button class="btn btn-primary btn-xs" title="Download Berkas" disabled><i class="fa fa-download"></i></button>
                                                     <?php } ?>
                                                     <button data-toggle="modal" data-target=".bs-example-modal-lg<?= $data['id_keluar']; ?>" class="btn btn-success btn-xs" title="Upload Berkas"><i class="fa fa-upload"></i></button>
-                                                    <a href="download.php?filename=<?= $data['nm_qr'] ?>" class="btn btn-primary btn-xs" title="Download QR Code"><i class="fa fa-qrcode"></i></a>
+                                                    <a href="download.php?filename=<?= $data['nm_qr'] ?>" class="btn btn-info btn-xs" title="Download QR Code"><i class="fa fa-qrcode"></i></a>
+                                                    <a href="download.php?filename=<?= $data['nm_qr'] ?>" class="btn bg-navy btn-xs" title="Publish"><i class="fa fa-share"></i></a>
                                                     <a href="keluar_edit.php?id=<?= $data['id_keluar']; ?>" class="btn btn-warning btn-xs" title="Edit"><i class="fa fa-pencil-square-o"></i></a>
                                                     <a href="hapus_surat_keluar.php?id=<?= $data['id_keluar'] ?>" class="btn btn-danger btn-xs" title="Hapus" onclick="return confirm('Yakin akan dihapus ?')"><i class="fa fa-trash-o"></i></a>
-                                                </div> -->
+                                                </div>
                                             </td>
                                     </tr>
                                     <div class="modal fade bs-example-modal-lg<?= $data['id_keluar']; ?>" tabindex="-1" role="dialog" aria-hidden="true">
@@ -154,6 +139,7 @@
 </script>
 <?php
 include 'foot.php';
+
 
 if (isset($_POST['upload'])) {
     $id = $_POST['id_keluar'];
