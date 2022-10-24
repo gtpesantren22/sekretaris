@@ -68,14 +68,7 @@
                                         required="required"></textarea>
                                 </div>
                             </div>
-                            <div class="item form-group">
-                                <label class="control-label col-md-3 col-sm-3 col-xs-12">Publish<span
-                                        class="required">&nbsp; :</span></label>
-                                <div class="col-md-6 col-sm-6 col-xs-12">
-                                    <input type="radio" name="pub" id="" value="YA"> YA
-                                    <input type="radio" name="pub" id="" value="TIDAK"> TIDAK
-                                </div>
-                            </div>
+
                             <div class="ln_solid"></div>
                             <div class="form-group">
                                 <div class="col-md-6 col-md-offset-3">
@@ -122,11 +115,11 @@ if (isset($_REQUEST['submit'])) {
     $tanggal_kirim    = $_POST['tanggal_kirim'];
     $tujuan         = htmlspecialchars(mysqli_real_escape_string($conn, $_POST['tujuan']));
     $isi_ringkas    = htmlspecialchars(mysqli_real_escape_string($conn, $_POST['isi_ringkas']));
-    $pub    = $_POST['pub'];
+    $pub    = 'TIDAK';
 
     $permitted_chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
     $kode = substr(str_shuffle($permitted_chars), 0, 64);
-    $isi = 'https://surat.ppdwk.com/resmi/' . $kode;
+    $isi = 'https://surat.ppdwk.com/welcome/resmi/' . $kode;
 
     $penyimpanan = "upload/QR-Code/";
     $nm_qr = 'qr-' . rand(0, 999999999) . '.png';
@@ -141,7 +134,7 @@ if (isset($_REQUEST['submit'])) {
     				window.location.href="keluar_add.php";
     			  </script>';
     } else {
-        $query         = "INSERT INTO surat_keluar VALUES('', '$no_surat',  '$tanggal_kirim', '$tujuan', '$isi_ringkas', '$kode', '$nm_qr', '$pub', '-')";
+        $query         = "INSERT INTO surat_keluar VALUES('', '$no_surat',  '$tanggal_kirim', '$tujuan', '$isi_ringkas', '$kode', '$nm_qr', '', '$pub', '-')";
         $sql        = mysqli_query($conn, $query);
         if ($sql) {
             echo '<script>

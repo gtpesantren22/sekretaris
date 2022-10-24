@@ -83,9 +83,10 @@
                                                 <a href="download.php?filename=<?= $data['nm_qr'] ?>"
                                                     class="btn btn-info btn-xs" title="Download QR Code"><i
                                                         class="fa fa-qrcode"></i></a>
-                                                <a href="download.php?filename=<?= $data['nm_qr'] ?>"
-                                                    class="btn bg-navy btn-xs" title="Publish"><i
-                                                        class="fa fa-share"></i></a>
+                                                <button data-toggle="modal"
+                                                    data-target=".bs-example-modal-lg2<?= $data['id_keluar']; ?>"
+                                                    class="btn bg-purple btn-xs" title="Publish"><i
+                                                        class="fa fa-share"></i></button>
                                                 <a href="keluar_edit.php?id=<?= $data['id_keluar']; ?>"
                                                     class="btn btn-warning btn-xs" title="Edit"><i
                                                         class="fa fa-pencil-square-o"></i></a>
@@ -95,7 +96,6 @@
                                                         class="fa fa-trash-o"></i></a>
                                             </div>
                                         </td>
-
                                     </tr>
                                     <div class="modal fade bs-example-modal-lg<?= $data['id_keluar']; ?>" tabindex="-1"
                                         role="dialog" aria-hidden="true">
@@ -103,7 +103,7 @@
                                             <div class="modal-content">
                                                 <div class="modal-header">
                                                     <h4 class="modal-title" id="myModalLabel">Form Uoload File SURAT
-                                                        Keluar</h4>
+                                                        Keluar (doc,docx,pdf)</h4>
                                                 </div>
                                                 <form action="" method="post" enctype="multipart/form-data">
                                                     <input type="hidden" name="id_keluar"
@@ -121,6 +121,46 @@
                                                         <button type="button" class="btn btn-secondary"
                                                             data-dismiss="modal">Close</button>
                                                         <button type="submit" name="upload"
+                                                            class="btn btn-primary">Simpan</button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="modal fade bs-example-modal-lg2<?= $data['id_keluar']; ?>" tabindex="-1"
+                                        role="dialog" aria-hidden="true">
+                                        <div class="modal-dialog modal-lg">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h4 class="modal-title" id="myModalLabel">Form Upload File Gambar
+                                                        Surat Keluar dan Publish</h4>
+                                                </div>
+                                                <form action="" method="post" enctype="multipart/form-data">
+                                                    <input type="hidden" name="id_keluar"
+                                                        value="<?= $data['id_keluar']; ?>">
+                                                    <div class="modal-body">
+                                                        <h4>Unggah Gambar (png,jpg)</h4>
+                                                        <div class="form-group">
+                                                            <input type="file" name="brimg" id="" class="form-control"
+                                                                required>
+                                                        </div>
+                                                        <div class="item form-group">
+                                                            <h4>Publish</h4>
+                                                            <div class="form-group">
+                                                                <input type="radio" name="pub" id="" value="YA"
+                                                                    <?= $data['publish'] === 'YA' ? 'checked' : ''; ?>
+                                                                    required> YA
+                                                                <input type="radio" name="pub" id="" value="TIDAK"
+                                                                    <?= $data['publish'] === 'TIDAK' ? 'checked' : ''; ?>
+                                                                    required>
+                                                                TIDAK
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-secondary"
+                                                            data-dismiss="modal">Close</button>
+                                                        <button type="submit" name="uploadimg"
                                                             class="btn btn-primary">Simpan</button>
                                                     </div>
                                                 </form>
@@ -205,4 +245,46 @@ if (isset($_POST['upload'])) {
         }
     }
 }
+
+if (isset($_POST['uploadimg'])) {
+    $id = $_POST['id_keluar'];
+    $pub = $_POST['pub'];
+    // $no = $_POST['no_surat'];
+    $no = 'img-' . rand(0, 9999999);
+
+    $ekstensi =  array('png', 'jpg', 'jpeg');
+    $filename = $_FILES['brimg']['name'];
+    $ukuran = $_FILES['brimg']['size'];
+    $ext = pathinfo($filename, PATHINFO_EXTENSION);
+    $extensi = explode('.', $filename);
+
+    if (!in_array($ext, $ekstensi)) {
+        echo "
+				<script>
+					alert('Maaf. Yang anda upload bukan brimgnya');
+					window.location = 'keluar.php';
+				</script
+			";
+    } else {
+
+        $xx = $no . '.' . end($extensi);
+        $file_lama = 'upload/surat_keluar/' . $xx;
+        if (file_exists($file_lama)) {
+            unlink($file_lama);
+        }
+
+        $sql2 = mysqli_query($conn, "UPDATE surat_keluar SET nm_img = '$xx', publish = '$pub' WHERE id_keluar = '$id' ");
+        move_uploaded_file($_FILES['brimg']['tmp_name'], 'upload/surat_keluar/' . $xx);
+
+        if ($sql2) {
+            echo "
+				<script>
+					alert('Upload berhasil');
+					window.location = 'keluar.php';
+				</script>
+			";
+        }
+    }
+}
+
 ?>
