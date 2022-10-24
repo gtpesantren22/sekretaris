@@ -222,7 +222,7 @@ if (isset($_POST['upload'])) {
 				<script>
 					alert('Maaf. Yang anda upload bukan berkasnya');
 					window.location = 'keluar.php';
-				</script
+				</script>
 			";
     } else {
 
