@@ -263,7 +263,7 @@ if (isset($_POST['uploadimg'])) {
 				<script>
 					alert('Maaf. Yang anda upload bukan brimgnya');
 					window.location = 'keluar.php';
-				</script
+				</script>
 			";
     } else {
 
