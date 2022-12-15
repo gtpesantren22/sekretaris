@@ -30,9 +30,9 @@
                                         <select name="nis" id="pilihv2" class="form-control ">
                                             <option value=""> -pilih santri- </option>
                                             <?php
-                      $dt = mysqli_query($conn, "SELECT * FROM tb_santri WHERE aktif = 'Y' ");
-                      while ($kr = mysqli_fetch_assoc($dt)) {
-                      ?>
+                                            $dt = mysqli_query($conn, "SELECT * FROM tb_santri WHERE aktif = 'Y' ");
+                                            while ($kr = mysqli_fetch_assoc($dt)) {
+                                            ?>
                                             <option value="<?= $kr['nis']; ?>"><?= $kr['nama']; ?></option>
                                             <?php } ?>
                                         </select>
@@ -46,10 +46,10 @@
                         </form>
                     </div><!-- /.box-body -->
                     <?php
-          if (isset($_POST['cek'])) {
-            $nis = $_POST['nis'];
-            $dts = mysqli_fetch_assoc(mysqli_query($conn, "SELECT * FROM tb_santri WHERE nis = '$nis' "));
-          ?>
+                    if (isset($_POST['cek'])) {
+                        $nis = $_POST['nis'];
+                        $dts = mysqli_fetch_assoc(mysqli_query($conn, "SELECT * FROM tb_santri WHERE nis = '$nis' "));
+                    ?>
                     <div class="box-header">
                         <h3 class="box-title">Detail Data Santri</h3>
                     </div><!-- /.box-header -->
@@ -142,14 +142,14 @@ $(function() {
 include 'foot.php';
 
 if (isset($_POST['simpan'])) {
-  $nis = $_POST['nis'];
-  $alasan = htmlspecialchars(mysqli_real_escape_string($conn, $_POST['alasan']));
-  $tgl_mutasi = htmlspecialchars(mysqli_real_escape_string($conn, $_POST['tgl_mutasi']));
+    $nis = $_POST['nis'];
+    $alasan = htmlspecialchars(mysqli_real_escape_string($conn, $_POST['alasan']));
+    $tgl_mutasi = htmlspecialchars(mysqli_real_escape_string($conn, $_POST['tgl_mutasi']));
 
-  $cek = mysqli_query($conn, "SELECT * FROM mutasi WHERE nis = '$nis' ");
-  $dts = mysqli_fetch_assoc(mysqli_query($conn, "SELECT * FROM tb_santri WHERE nis = '$nis' "));
+    $cek = mysqli_query($conn, "SELECT * FROM mutasi WHERE nis = '$nis' ");
+    $dts = mysqli_fetch_assoc(mysqli_query($conn, "SELECT * FROM tb_santri WHERE nis = '$nis' "));
 
-  $psn = '*INFORMASI MUTASI BARU*
+    $psn = '*INFORMASI MUTASI BARU*
 
 *PERMOHONAN PENGECEKAN TANGGUNGAN SANTRI*
     
@@ -161,8 +161,8 @@ Tgl Mutasi : ' . $tgl_mutasi . '
 *_dimohon kepada BENDAHARA PESANTREN untuk segera mengecek tanggungan nya_*
 Terimakasih';
 
-  if (mysqli_num_rows($cek) > 0) {
-    echo "
+    if (mysqli_num_rows($cek) > 0) {
+        echo "
       <script>
         Swal.fire({
           icon: 'error',
@@ -171,30 +171,30 @@ Terimakasih';
         })
       </script>
     ";
-  } else {
-    $sql = mysqli_query($conn, "INSERT INTO mutasi VALUES ('', '$nis', '$alasan', '$tgl_mutasi', 0, '2022/2023') ");
-    $sql2 = mysqli_query($conn_santri, "INSERT INTO mutasi VALUES ('', '$nis', '$alasan', '$tgl_mutasi', 0, '2022/2023') ");
-    if ($sql && $sql2) {
+    } else {
+        $sql = mysqli_query($conn, "INSERT INTO mutasi VALUES ('', '$nis', '$alasan', '$tgl_mutasi', 0, '2022/2023') ");
+        $sql2 = mysqli_query($conn_santri, "INSERT INTO mutasi VALUES ('', '$nis', '$alasan', '$tgl_mutasi', 0, '2022/2023') ");
+        if ($sql && $sql2) {
 
-      $curl2 = curl_init();
-      curl_setopt_array(
-        $curl2,
-        array(
-          CURLOPT_URL => 'http://8.215.26.187:3000/api/sendMessageGroup',
-          CURLOPT_RETURNTRANSFER => true,
-          CURLOPT_ENCODING => '',
-          CURLOPT_MAXREDIRS => 10,
-          CURLOPT_TIMEOUT => 0,
-          CURLOPT_FOLLOWLOCATION => true,
-          CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-          CURLOPT_CUSTOMREQUEST => 'POST',
-          CURLOPT_POSTFIELDS => 'apiKey=f4064efa9d05f66f9be6151ec91ad846&id_group=120363028015516743@g.us&message=' . $psn,
-        )
-      );
-      $response = curl_exec($curl2);
-      curl_close($curl2);
+            $curl2 = curl_init();
+            curl_setopt_array(
+                $curl2,
+                array(
+                    CURLOPT_URL => 'http://8.215.26.187:3000/api/sendMessageGroup',
+                    CURLOPT_RETURNTRANSFER => true,
+                    CURLOPT_ENCODING => '',
+                    CURLOPT_MAXREDIRS => 10,
+                    CURLOPT_TIMEOUT => 0,
+                    CURLOPT_FOLLOWLOCATION => true,
+                    CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                    CURLOPT_CUSTOMREQUEST => 'POST',
+                    CURLOPT_POSTFIELDS => 'apiKey=f4064efa9d05f66f9be6151ec91ad846&id_group=120363028015516743@g.us&message=' . $psn,
+                )
+            );
+            $response = curl_exec($curl2);
+            curl_close($curl2);
 
-      echo "
+            echo "
       <script>
       Swal.fire({
         icon: 'success',
@@ -204,7 +204,7 @@ Terimakasih';
       window.location = 'mutasi.php';
       </script>
     ";
+        }
     }
-  }
 }
 ?>

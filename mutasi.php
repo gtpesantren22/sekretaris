@@ -39,17 +39,17 @@
                                 </thead>
                                 <tbody>
                                     <?php
-                  $no = 1;
-                  $sql = mysqli_query($conn, "SELECT a.*, b.* FROM mutasi a JOIN tb_santri b ON a.nis=b.nis WHERE  aktif = 'Y' ORDER BY id_mutasi DESC ");
-                  while ($dt = mysqli_fetch_assoc($sql)) {
-                    if ($dt['status'] == 0) {
-                      $stas = "<span class='label label-danger'><i class='fa fa-times'></i> Verval Bendahara</span> | <span class='label label-danger'><i class='fa fa-times'></i> Kirim ke Pendataan</span>";
-                    } elseif ($dt['status'] == 1) {
-                      $stas = "<span class='label label-success'><i class='fa fa-check'></i> Verval Bendahara</span> | <span class='label label-danger'><i class='fa fa-times'></i> Kirim ke Pendataan</span>";
-                    } elseif ($dt['status'] == 2) {
-                      $stas = "<span class='label label-success'><i class='fa fa-check'></i> Verval Bendahara</span> | <span class='label label-success'><i class='fa fa-check'></i> Kirim ke Pendataan</span>";
-                    }
-                  ?>
+                                    $no = 1;
+                                    $sql = mysqli_query($conn, "SELECT a.*, b.* FROM mutasi a JOIN tb_santri b ON a.nis=b.nis WHERE  aktif = 'Y' ORDER BY id_mutasi DESC ");
+                                    while ($dt = mysqli_fetch_assoc($sql)) {
+                                        if ($dt['status'] == 0) {
+                                            $stas = "<span class='label label-danger'><i class='fa fa-times'></i> Verval Bendahara</span> | <span class='label label-danger'><i class='fa fa-times'></i> Kirim ke Pendataan</span>";
+                                        } elseif ($dt['status'] == 1) {
+                                            $stas = "<span class='label label-success'><i class='fa fa-check'></i> Verval Bendahara</span> | <span class='label label-danger'><i class='fa fa-times'></i> Kirim ke Pendataan</span>";
+                                        } elseif ($dt['status'] == 2) {
+                                            $stas = "<span class='label label-success'><i class='fa fa-check'></i> Verval Bendahara</span> | <span class='label label-success'><i class='fa fa-check'></i> Kirim ke Pendataan</span>";
+                                        }
+                                    ?>
                                     <tr>
                                         <td><?= $no++; ?></td>
                                         <td><?= $dt['nis']; ?></td>
@@ -102,7 +102,7 @@
                                                 </div>
                                             </div>
                                             <?php } elseif ($dt['status'] == 2) {
-                        } ?>
+                                                } ?>
                                         </td>
                                     </tr>
                                     <?php } ?>
@@ -143,12 +143,12 @@ $(function() {
 include 'foot.php';
 
 if (isset($_POST['send'])) {
-  $id_mutasi = $_POST['id_mutasi'];
-  $sql = mysqli_query($conn, "UPDATE mutasi SET status = 2 WHERE id_mutasi = '$id_mutasi' ");
-  $sql2 = mysqli_query($conn_santri, "UPDATE mutasi SET status = 2 WHERE id_mutasi = '$id_mutasi' ");
+    $id_mutasi = $_POST['id_mutasi'];
+    $sql = mysqli_query($conn, "UPDATE mutasi SET status = 2 WHERE id_mutasi = '$id_mutasi' ");
+    $sql2 = mysqli_query($conn_santri, "UPDATE mutasi SET status = 2 WHERE id_mutasi = '$id_mutasi' ");
 
-  $dts = mysqli_fetch_assoc(mysqli_query($conn, "SELECT a.tgl_mutasi, b.* FROM mutasi a JOIN tb_santri b ON a.nis=b.nis WHERE a.id_mutasi = $id_mutasi "));
-  $psn = '*INFORMASI MUTASI*
+    $dts = mysqli_fetch_assoc(mysqli_query($conn, "SELECT a.tgl_mutasi, b.* FROM mutasi a JOIN tb_santri b ON a.nis=b.nis WHERE a.id_mutasi = $id_mutasi "));
+    $psn = '*INFORMASI MUTASI*
 
 *PERMOHONAN PENGELUARAN DATA SANTRI*
     
@@ -160,27 +160,27 @@ Tgl Mutasi : ' .  $dts['tgl_mutasi'] . '
 *_Surat mutasi sudah diterbitkan oleh SEKRETARIAT. Santri sudah resmi mutasi. Untuk selanjutnya kepada admin DPontren untuk mengeluarkan data santri diatas_*
 Terimakasih';
 
-  if ($sql2 && $sql) {
+    if ($sql2 && $sql) {
 
-    $curl2 = curl_init();
-    curl_setopt_array(
-      $curl2,
-      array(
-        CURLOPT_URL => 'http://8.215.26.187:3000/api/sendMessageGroup',
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_ENCODING => '',
-        CURLOPT_MAXREDIRS => 10,
-        CURLOPT_TIMEOUT => 0,
-        CURLOPT_FOLLOWLOCATION => true,
-        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-        CURLOPT_CUSTOMREQUEST => 'POST',
-        CURLOPT_POSTFIELDS => 'apiKey=f4064efa9d05f66f9be6151ec91ad846&id_group=120363028015516743@g.us&message=' . $psn,
-      )
-    );
-    $response = curl_exec($curl2);
-    curl_close($curl2);
+        $curl2 = curl_init();
+        curl_setopt_array(
+            $curl2,
+            array(
+                CURLOPT_URL => 'http://8.215.26.187:3000/api/sendMessageGroup',
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_ENCODING => '',
+                CURLOPT_MAXREDIRS => 10,
+                CURLOPT_TIMEOUT => 0,
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                CURLOPT_CUSTOMREQUEST => 'POST',
+                CURLOPT_POSTFIELDS => 'apiKey=f4064efa9d05f66f9be6151ec91ad846&id_group=120363028015516743@g.us&message=' . $psn,
+            )
+        );
+        $response = curl_exec($curl2);
+        curl_close($curl2);
 
-    echo "
+        echo "
             <script>
                 Swal.fire({
                     icon: 'success',
@@ -194,6 +194,6 @@ Terimakasih';
                 }, millisecondsToWait);
             </script>
         ";
-  }
+    }
 }
 ?>
