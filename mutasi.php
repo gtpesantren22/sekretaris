@@ -1,43 +1,44 @@
 <?php include 'head.php'; ?>
 <div class="content-wrapper">
-  <!-- Content Header (Page header) -->
-  <section class="content-header">
-    <h1>
-      Data Mutasi Santri
-      <small>Data</small>
-    </h1>
-    <ol class="breadcrumb">
-      <li><a href="#"><i class="fa fa-dashboard"></i> Data</a></li>
-      <li class="active">Data Mutasi Santri</li>
-    </ol>
-  </section>
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+        <h1>
+            Data Mutasi Santri
+            <small>Data</small>
+        </h1>
+        <ol class="breadcrumb">
+            <li><a href="#"><i class="fa fa-dashboard"></i> Data</a></li>
+            <li class="active">Data Mutasi Santri</li>
+        </ol>
+    </section>
 
-  <!-- Main content -->
-  <section class="content">
-    <div class="row">
-      <div class="col-xs-12">
-        <div class="box">
-          <div class="box-header">
-            <h3 class="box-title">Data Mutasi Santri
-            </h3>
-            <a href="mutasi_add.php" class="btn btn-primary pull-right btn-sm"><i class="fa fa-plus-circle"></i> Tambah Mutasi Baru</a>
-          </div><!-- /.box-header -->
-          <div class="box-body">
-            <div class="table-responsive">
-              <table id="example1_bst" class="table table-bordered table-striped">
-                <thead>
-                  <tr>
-                    <th>No</th>
-                    <th>NIS</th>
-                    <th>Nama</th>
-                    <th>Alasan</th>
-                    <th>Tgl Mutasi</th>
-                    <th>Status</th>
-                    <th>#</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <?php
+    <!-- Main content -->
+    <section class="content">
+        <div class="row">
+            <div class="col-xs-12">
+                <div class="box">
+                    <div class="box-header">
+                        <h3 class="box-title">Data Mutasi Santri
+                        </h3>
+                        <a href="mutasi_add.php" class="btn btn-primary pull-right btn-sm"><i
+                                class="fa fa-plus-circle"></i> Tambah Mutasi Baru</a>
+                    </div><!-- /.box-header -->
+                    <div class="box-body">
+                        <div class="table-responsive">
+                            <table id="example1_bst" class="table table-bordered table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>No</th>
+                                        <th>NIS</th>
+                                        <th>Nama</th>
+                                        <th>Alasan</th>
+                                        <th>Tgl Mutasi</th>
+                                        <th>Status</th>
+                                        <th>#</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php
                   $no = 1;
                   $sql = mysqli_query($conn, "SELECT a.*, b.* FROM mutasi a JOIN tb_santri b ON a.nis=b.nis WHERE  aktif = 'Y' ORDER BY id_mutasi DESC ");
                   while ($dt = mysqli_fetch_assoc($sql)) {
@@ -49,57 +50,71 @@
                       $stas = "<span class='label label-success'><i class='fa fa-check'></i> Verval Bendahara</span> | <span class='label label-success'><i class='fa fa-check'></i> Kirim ke Pendataan</span>";
                     }
                   ?>
-                    <tr>
-                      <td><?= $no++; ?></td>
-                      <td><?= $dt['nis']; ?></td>
-                      <td><?= $dt['nama']; ?></td>
-                      <td><?= $dt['alasan']; ?></td>
-                      <td><?= $dt['tgl_mutasi']; ?></td>
-                      <td><?= $stas; ?></td>
-                      <td>
-                        <?php if ($dt['status'] == 0) { ?>
+                                    <tr>
+                                        <td><?= $no++; ?></td>
+                                        <td><?= $dt['nis']; ?></td>
+                                        <td><?= $dt['nama']; ?></td>
+                                        <td><?= $dt['alasan']; ?></td>
+                                        <td><?= $dt['tgl_mutasi']; ?></td>
+                                        <td><?= $stas; ?></td>
+                                        <td>
+                                            <?php if ($dt['status'] == 0) { ?>
 
-                          <a class="btn btn-danger btn-xs" onclick="return confirm('Yakin akan dihapus ?')" href="<?= 'hapus.php?kd=mts&id=' . $dt['id_mutasi']; ?>"><i class="fa fa-trash"></i></a>
+                                            <a class="btn btn-danger btn-xs"
+                                                onclick="return confirm('Yakin akan dihapus ?')"
+                                                href="<?= 'hapus.php?kd=mts&id=' . $dt['id_mutasi']; ?>"><i
+                                                    class="fa fa-trash"></i></a>
 
-                        <?php } elseif ($dt['status'] == 1) { ?>
+                                            <?php } elseif ($dt['status'] == 1) { ?>
 
-                          <a class="btn btn-danger btn-xs" onclick="return confirm('Yakin akan dihapus ?')" href="<?= 'hapus.php?kd=mts&id=' . $dt['id_mutasi']; ?>"><i class="fa fa-trash"></i></a>
-                          <button class="btn btn-xs btn-primary" data-toggle="modal" data-target="#smallModal"><i class="fa fa-send"></i> kirim</button>
-                          <div class="modal fade" id="smallModal" tabindex="-1" role="dialog" aria-labelledby="smallModal" aria-hidden="true">
-                            <div class="modal-dialog modal-sm">
-                              <div class="modal-content">
-                                <div class="modal-header">
-                                  <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                                  <h4 class="modal-title" id="myModalLabel">Kirim Data</h4>
-                                </div>
-                                <form action="" method="post">
-                                  <input type="hidden" name="id_mutasi" value="<?= $dt['id_mutasi']; ?>">
-                                  <div class="modal-body">
-                                    <h3>Yakin akan diteruskan ?</h3>
-                                    <p>Fitur ini akan mengirim data kepada admin D'Pontren untuk selanjutnya data ini akan dikeluarkan dari data santri aktif</p>
-                                  </div>
-                                  <div class="modal-footer">
-                                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                                    <button type="submit" name="send" class="btn btn-primary">Ya. Kirim pon!</button>
-                                  </div>
-                                </form>
-                              </div>
-                            </div>
-                          </div>
-                        <?php } elseif ($dt['status'] == 2) {
+                                            <a class="btn btn-danger btn-xs"
+                                                onclick="return confirm('Yakin akan dihapus ?')"
+                                                href="<?= 'hapus.php?kd=mts&id=' . $dt['id_mutasi']; ?>"><i
+                                                    class="fa fa-trash"></i></a>
+                                            <button class="btn btn-xs btn-primary" data-toggle="modal"
+                                                data-target="#smallModal"><i class="fa fa-send"></i> kirim</button>
+                                            <div class="modal fade" id="smallModal" tabindex="-1" role="dialog"
+                                                aria-labelledby="smallModal" aria-hidden="true">
+                                                <div class="modal-dialog modal-sm">
+                                                    <div class="modal-content">
+                                                        <div class="modal-header">
+                                                            <button type="button" class="close" data-dismiss="modal"
+                                                                aria-hidden="true">&times;</button>
+                                                            <h4 class="modal-title" id="myModalLabel">Kirim Data</h4>
+                                                        </div>
+                                                        <form action="" method="post">
+                                                            <input type="hidden" name="id_mutasi"
+                                                                value="<?= $dt['id_mutasi']; ?>">
+                                                            <div class="modal-body">
+                                                                <h3>Yakin akan diteruskan ?</h3>
+                                                                <p>Fitur ini akan mengirim data kepada admin D'Pontren
+                                                                    untuk selanjutnya data ini akan dikeluarkan dari
+                                                                    data santri aktif</p>
+                                                            </div>
+                                                            <div class="modal-footer">
+                                                                <button type="button" class="btn btn-default"
+                                                                    data-dismiss="modal">Close</button>
+                                                                <button type="submit" name="send"
+                                                                    class="btn btn-primary">Ya. Kirim pon!</button>
+                                                            </div>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <?php } elseif ($dt['status'] == 2) {
                         } ?>
-                      </td>
-                    </tr>
-                  <?php } ?>
-                </tbody>
-              </table>
-            </div>
-          </div><!-- /.box-body -->
-        </div><!-- /.box -->
+                                        </td>
+                                    </tr>
+                                    <?php } ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div><!-- /.box-body -->
+                </div><!-- /.box -->
 
-      </div><!-- /.col -->
-    </div><!-- /.row -->
-  </section><!-- /.content -->
+            </div><!-- /.col -->
+        </div><!-- /.row -->
+    </section><!-- /.content -->
 </div><!-- /.content-wrapper -->
 <!-- DataTables -->
 <link rel="stylesheet" href="plugins/datatables/dataTables.bootstrap.css">
@@ -112,17 +127,17 @@
 <script src="plugins/datatables/dataTables.bootstrap.min.js"></script>
 <script src="plugins/sw/sweetalert2.all.min.js"></script>
 <script>
-  $(function() {
+$(function() {
     $("#example1_bst").DataTable();
     $('#example2').DataTable({
-      "paging": true,
-      "lengthChange": false,
-      "searching": false,
-      "ordering": true,
-      "info": true,
-      "autoWidth": false
+        "paging": true,
+        "lengthChange": false,
+        "searching": false,
+        "ordering": true,
+        "info": true,
+        "autoWidth": false
     });
-  });
+});
 </script>
 <?php
 include 'foot.php';
@@ -159,7 +174,7 @@ Terimakasih';
         CURLOPT_FOLLOWLOCATION => true,
         CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
         CURLOPT_CUSTOMREQUEST => 'POST',
-        CURLOPT_POSTFIELDS => 'apiKey=fb209be1f23625e43cbf285e57c0c0f2&id_group=CnbjJ9vz2Dh7KkNzI3769h&message=' . $psn,
+        CURLOPT_POSTFIELDS => 'apiKey=f4064efa9d05f66f9be6151ec91ad846&id_group=120363028015516743@g.us&message=' . $psn,
       )
     );
     $response = curl_exec($curl2);
