@@ -180,9 +180,9 @@ Terimakasih';
 
     if ($sql) {
 
-        // kirim_group('f4064efa9d05f66f9be6151ec91ad846', '120363042148360147@g.us', $psn);
-        // kirim_group('f4064efa9d05f66f9be6151ec91ad846', '120363042148360147@g.us', $psn);
-        kirim_person('f4064efa9d05f66f9be6151ec91ad846', '085236924510', $psn);
+        kirim_group('f4064efa9d05f66f9be6151ec91ad846', '120363042148360147@g.us', $psn);
+        kirim_group('f4064efa9d05f66f9be6151ec91ad846', '120363042148360147@g.us', $psn);
+        // kirim_person('f4064efa9d05f66f9be6151ec91ad846', '085236924510', $psn);
         echo "
             <script>
             alert('PAK telah ditolak');
