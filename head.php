@@ -102,14 +102,15 @@ $bulan = array("", "Januari", "Februari", "Maret", "April", "Mei", "Juni", "July
                                         <a href="#" class="btn btn-default btn-flat">Profile</a>
                                     </div>
                                     <div class="pull-right">
-                                        <a href="logout.php" onclick="return confirm('Yakin akan keluar ?')" class="btn btn-default btn-flat">Sign out</a>
+                                        <a href="logout.php" onclick="return confirm('Yakin akan keluar ?')"
+                                            class="btn btn-default btn-flat">Sign out</a>
                                     </div>
                                 </li>
                             </ul>
                         </li>
                         <li class="dropdown user user-menu">
-                            <a href="logout.php" onclick="return confirm('Yakin akan keluar ?')" class="dropdown-toggle" data-toggle="dropdown">
-                               <i class="fa fa-power-off"></i>
+                            <a href="logout.php" onclick="return confirm('Yakin akan keluar ?')">
+                                <i class="fa fa-power-off"></i>
                             </a>
                         </li>
                     </ul>
@@ -140,7 +141,8 @@ $bulan = array("", "Januari", "Februari", "Maret", "April", "Mei", "Juni", "July
                     </li>
                     <li class="treeview">
                         <a href="#">
-                            <i class="fa fa-users"></i> <span>Data Santri</span> <i class="fa fa-angle-left pull-right"></i>
+                            <i class="fa fa-users"></i> <span>Data Santri</span> <i
+                                class="fa fa-angle-left pull-right"></i>
                         </a>
                         <ul class="treeview-menu">
                             <li class=""><a href="santri_pa.php"><i class="fa fa-circle-o"></i> Putra</a></li>
@@ -154,12 +156,18 @@ $bulan = array("", "Januari", "Februari", "Maret", "April", "Mei", "Juni", "July
                     </li>
                     <li class="treeview">
                         <a href="#">
-                            <i class="fa fa-envelope"></i> <span>Persuratan</span> <i class="fa fa-angle-left pull-right"></i>
+                            <i class="fa fa-envelope"></i> <span>Persuratan</span> <i
+                                class="fa fa-angle-left pull-right"></i>
                         </a>
                         <ul class="treeview-menu">
                             <li class=""><a href="#"><i class="fa fa-circle-o"></i> Surat Masuk</a></li>
                             <li><a href="keluar.php"><i class="fa fa-circle-o"></i> Surat Keluar</a></li>
                         </ul>
+                    </li>
+                    <li>
+                        <a href="pak.php">
+                            <i class="fa fa-money"></i> <span>Informasi PAK</span>
+                        </a>
                     </li>
                 </ul>
             </section>
