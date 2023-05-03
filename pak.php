@@ -13,57 +13,55 @@
     </section>
 
     <?php if ($level_user === 'super') { ?>
-    <!-- Main content -->
-    <section class="content">
-        <div class="row">
-            <div class="col-xs-12">
-                <div class="box">
-                    <div class="box-header">
-                        <h3 class="box-title">Data PAK
-                        </h3>
-                    </div><!-- /.box-header -->
-                    <div class="box-body">
-                        <div class="table-responsive">
-                            <table id="example1_bst" class="table table-bordered table-striped">
-                                <thead>
-                                    <tr>
-                                        <th>No</th>
-                                        <th>Kode PAK</th>
-                                        <th>Lembaga</th>
-                                        <th>Tanggal PAK</th>
-                                        <th>Status</th>
-                                        <th>Tahun</th>
-                                        <th>#</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <?php
+        <!-- Main content -->
+        <section class="content">
+            <div class="row">
+                <div class="col-xs-12">
+                    <div class="box">
+                        <div class="box-header">
+                            <h3 class="box-title">Data PAK
+                            </h3>
+                        </div><!-- /.box-header -->
+                        <div class="box-body">
+                            <div class="table-responsive">
+                                <table id="example1_bst" class="table table-bordered table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>No</th>
+                                            <th>Kode PAK</th>
+                                            <th>Lembaga</th>
+                                            <th>Tanggal PAK</th>
+                                            <th>Status</th>
+                                            <th>Tahun</th>
+                                            <th>#</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php
                                         $no = 1;
                                         $dt_bos = mysqli_query($conn_sentral, "SELECT a.*, b.nama FROM pak a JOIN lembaga b ON a.lembaga=b.kode WHERE a.status = 'ajukan' AND b.tahun = '2022/2023' ");
                                         while ($a = mysqli_fetch_assoc($dt_bos)) {
                                         ?>
-                                    <tr>
-                                        <td><?= $no++; ?></td>
-                                        <td><?= $a['kode_pak']; ?></td>
-                                        <td><?= $a['nama']; ?></td>
-                                        <td><?= $a['tgl_pak']; ?></td>
-                                        <td><?= $a['status']; ?></td>
-                                        <td><?= $a['tahun']; ?></td>
-                                        <td><a
-                                                href="<?= 'pak_detail.php?kode=' . $a['kode_pak'] . '&lm=' . $a['lembaga'] ?>"><button
-                                                    class="btn btn-info btn-sm"><i class="fa fa-search"></i>
-                                                    Cek PAK</button></a></td>
-                                    </tr>
-                                    <?php } ?>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div><!-- /.box-body -->
-                </div><!-- /.box -->
+                                            <tr>
+                                                <td><?= $no++; ?></td>
+                                                <td><?= $a['kode_pak']; ?></td>
+                                                <td><?= $a['nama']; ?></td>
+                                                <td><?= $a['tgl_pak']; ?></td>
+                                                <td><?= $a['status']; ?></td>
+                                                <td><?= $a['tahun']; ?></td>
+                                                <td><a href="<?= 'pak_detail.php?kode=' . $a['kode_pak'] . '&lm=' . $a['lembaga'] ?>"><button class="btn btn-info btn-sm"><i class="fa fa-search"></i>
+                                                            Cek PAK</button></a></td>
+                                            </tr>
+                                        <?php } ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div><!-- /.box-body -->
+                    </div><!-- /.box -->
 
-            </div><!-- /.col -->
-        </div><!-- /.row -->
-    </section><!-- /.content -->
+                </div><!-- /.col -->
+            </div><!-- /.row -->
+        </section><!-- /.content -->
     <?php } ?>
 
 </div><!-- /.content-wrapper -->
@@ -78,17 +76,17 @@
 <script src="plugins/datatables/dataTables.bootstrap.min.js"></script>
 <script src="plugins/sw/sweetalert2.all.min.js"></script>
 <script>
-$(function() {
-    $("#example1_bst").DataTable();
-    $('#example2').DataTable({
-        "paging": true,
-        "lengthChange": false,
-        "searching": false,
-        "ordering": true,
-        "info": true,
-        "autoWidth": false
+    $(function() {
+        $("#example1_bst").DataTable();
+        $('#example2').DataTable({
+            "paging": true,
+            "lengthChange": false,
+            "searching": false,
+            "ordering": true,
+            "info": true,
+            "autoWidth": false
+        });
     });
-});
 </script>
 <?php
 include 'foot.php';

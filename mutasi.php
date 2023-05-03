@@ -20,8 +20,7 @@
                     <div class="box-header">
                         <h3 class="box-title">Data Mutasi Santri
                         </h3>
-                        <a href="mutasi_add.php" class="btn btn-primary pull-right btn-sm"><i
-                                class="fa fa-plus-circle"></i> Tambah Mutasi Baru</a>
+                        <a href="mutasi_add.php" class="btn btn-primary pull-right btn-sm"><i class="fa fa-plus-circle"></i> Tambah Mutasi Baru</a>
                     </div><!-- /.box-header -->
                     <div class="box-body">
                         <div class="table-responsive">
@@ -50,61 +49,49 @@
                                             $stas = "<span class='label label-success'><i class='fa fa-check'></i> Verval Bendahara</span> | <span class='label label-success'><i class='fa fa-check'></i> Kirim ke Pendataan</span>";
                                         }
                                     ?>
-                                    <tr>
-                                        <td><?= $no++; ?></td>
-                                        <td><?= $dt['nis']; ?></td>
-                                        <td><?= $dt['nama']; ?></td>
-                                        <td><?= $dt['alasan']; ?></td>
-                                        <td><?= $dt['tgl_mutasi']; ?></td>
-                                        <td><?= $stas; ?></td>
-                                        <td>
-                                            <?php if ($dt['status'] == 0) { ?>
+                                        <tr>
+                                            <td><?= $no++; ?></td>
+                                            <td><?= $dt['nis']; ?></td>
+                                            <td><?= $dt['nama']; ?></td>
+                                            <td><?= $dt['alasan']; ?></td>
+                                            <td><?= $dt['tgl_mutasi']; ?></td>
+                                            <td><?= $stas; ?></td>
+                                            <td>
+                                                <?php if ($dt['status'] == 0) { ?>
 
-                                            <a class="btn btn-danger btn-xs"
-                                                onclick="return confirm('Yakin akan dihapus ?')"
-                                                href="<?= 'hapus.php?kd=mts&id=' . $dt['id_mutasi']; ?>"><i
-                                                    class="fa fa-trash"></i></a>
+                                                    <a class="btn btn-danger btn-xs" onclick="return confirm('Yakin akan dihapus ?')" href="<?= 'hapus.php?kd=mts&id=' . $dt['id_mutasi']; ?>"><i class="fa fa-trash"></i></a>
 
-                                            <?php } elseif ($dt['status'] == 1) { ?>
+                                                <?php } elseif ($dt['status'] == 1) { ?>
 
-                                            <a class="btn btn-danger btn-xs"
-                                                onclick="return confirm('Yakin akan dihapus ?')"
-                                                href="<?= 'hapus.php?kd=mts&id=' . $dt['id_mutasi']; ?>"><i
-                                                    class="fa fa-trash"></i></a>
-                                            <button class="btn btn-xs btn-primary" data-toggle="modal"
-                                                data-target="#smallModal"><i class="fa fa-send"></i> kirim</button>
-                                            <div class="modal fade" id="smallModal" tabindex="-1" role="dialog"
-                                                aria-labelledby="smallModal" aria-hidden="true">
-                                                <div class="modal-dialog modal-sm">
-                                                    <div class="modal-content">
-                                                        <div class="modal-header">
-                                                            <button type="button" class="close" data-dismiss="modal"
-                                                                aria-hidden="true">&times;</button>
-                                                            <h4 class="modal-title" id="myModalLabel">Kirim Data</h4>
+                                                    <a class="btn btn-danger btn-xs" onclick="return confirm('Yakin akan dihapus ?')" href="<?= 'hapus.php?kd=mts&id=' . $dt['id_mutasi']; ?>"><i class="fa fa-trash"></i></a>
+                                                    <button class="btn btn-xs btn-primary" data-toggle="modal" data-target="#smallModal"><i class="fa fa-send"></i> kirim</button>
+                                                    <div class="modal fade" id="smallModal" tabindex="-1" role="dialog" aria-labelledby="smallModal" aria-hidden="true">
+                                                        <div class="modal-dialog modal-sm">
+                                                            <div class="modal-content">
+                                                                <div class="modal-header">
+                                                                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                                                                    <h4 class="modal-title" id="myModalLabel">Kirim Data</h4>
+                                                                </div>
+                                                                <form action="" method="post">
+                                                                    <input type="hidden" name="id_mutasi" value="<?= $dt['id_mutasi']; ?>">
+                                                                    <div class="modal-body">
+                                                                        <h3>Yakin akan diteruskan ?</h3>
+                                                                        <p>Fitur ini akan mengirim data kepada admin D'Pontren
+                                                                            untuk selanjutnya data ini akan dikeluarkan dari
+                                                                            data santri aktif</p>
+                                                                    </div>
+                                                                    <div class="modal-footer">
+                                                                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                                                                        <button type="submit" name="send" class="btn btn-primary">Ya. Kirim pon!</button>
+                                                                    </div>
+                                                                </form>
+                                                            </div>
                                                         </div>
-                                                        <form action="" method="post">
-                                                            <input type="hidden" name="id_mutasi"
-                                                                value="<?= $dt['id_mutasi']; ?>">
-                                                            <div class="modal-body">
-                                                                <h3>Yakin akan diteruskan ?</h3>
-                                                                <p>Fitur ini akan mengirim data kepada admin D'Pontren
-                                                                    untuk selanjutnya data ini akan dikeluarkan dari
-                                                                    data santri aktif</p>
-                                                            </div>
-                                                            <div class="modal-footer">
-                                                                <button type="button" class="btn btn-default"
-                                                                    data-dismiss="modal">Close</button>
-                                                                <button type="submit" name="send"
-                                                                    class="btn btn-primary">Ya. Kirim pon!</button>
-                                                            </div>
-                                                        </form>
                                                     </div>
-                                                </div>
-                                            </div>
-                                            <?php } elseif ($dt['status'] == 2) {
+                                                <?php } elseif ($dt['status'] == 2) {
                                                 } ?>
-                                        </td>
-                                    </tr>
+                                            </td>
+                                        </tr>
                                     <?php } ?>
                                 </tbody>
                             </table>
@@ -127,17 +114,17 @@
 <script src="plugins/datatables/dataTables.bootstrap.min.js"></script>
 <script src="plugins/sw/sweetalert2.all.min.js"></script>
 <script>
-$(function() {
-    $("#example1_bst").DataTable();
-    $('#example2').DataTable({
-        "paging": true,
-        "lengthChange": false,
-        "searching": false,
-        "ordering": true,
-        "info": true,
-        "autoWidth": false
+    $(function() {
+        $("#example1_bst").DataTable();
+        $('#example2').DataTable({
+            "paging": true,
+            "lengthChange": false,
+            "searching": false,
+            "ordering": true,
+            "info": true,
+            "autoWidth": false
+        });
     });
-});
 </script>
 <?php
 include 'foot.php';
@@ -154,7 +141,7 @@ if (isset($_POST['send'])) {
     
 Nama : ' . $dts['nama'] . '
 Alamat : ' . $dts['desa'] . '-' . $dts['kec'] . '-' . $dts['kab'] . '
-Sekolah : ' . $dts['t_formal'] . '
+Sekolah : ' . $dts['k_formal'] . ' ' . $dts['t_formal'] . '
 Tgl Mutasi : ' .  $dts['tgl_mutasi'] . '
 
 *_Surat mutasi sudah diterbitkan oleh SEKRETARIAT. Santri sudah resmi mutasi. Untuk selanjutnya kepada admin DPontren untuk mengeluarkan data santri diatas_*

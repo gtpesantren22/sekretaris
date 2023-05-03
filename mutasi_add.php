@@ -33,13 +33,12 @@
                                             $dt = mysqli_query($conn, "SELECT * FROM tb_santri WHERE aktif = 'Y' ");
                                             while ($kr = mysqli_fetch_assoc($dt)) {
                                             ?>
-                                            <option value="<?= $kr['nis']; ?>"><?= $kr['nama']; ?></option>
+                                                <option value="<?= $kr['nis']; ?>"><?= $kr['nama']; ?></option>
                                             <?php } ?>
                                         </select>
                                     </div>
                                     <div class="col-md-4">
-                                        <button class="btn btn-success btn-sm" type="submit" name="cek"><i
-                                                class="fa fa-serch"></i> Cek</button>
+                                        <button class="btn btn-success btn-sm" type="submit" name="cek"><i class="fa fa-serch"></i> Cek</button>
                                     </div>
                                 </div>
                             </div>
@@ -50,60 +49,58 @@
                         $nis = $_POST['nis'];
                         $dts = mysqli_fetch_assoc(mysqli_query($conn, "SELECT * FROM tb_santri WHERE nis = '$nis' "));
                     ?>
-                    <div class="box-header">
-                        <h3 class="box-title">Detail Data Santri</h3>
-                    </div><!-- /.box-header -->
-                    <div class="box-body">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <table class="table table-sm">
-                                    <tr>
-                                        <th>NIS</th>
-                                        <th>:</th>
-                                        <th><?= $dts['nis']; ?></th>
-                                    </tr>
-                                    <tr>
-                                        <th>Nama</th>
-                                        <th>:</th>
-                                        <th><?= $dts['nama']; ?></th>
-                                    </tr>
-                                    <tr>
-                                        <th>Alamat</th>
-                                        <th>:</th>
-                                        <th><?= $dts['desa'] . ' - ' . $dts['kec'] . ' - ' . $dts['kab']; ?></th>
-                                    </tr>
-                                    <tr>
-                                        <th>Kelas</th>
-                                        <th>:</th>
-                                        <th><?= $dts['k_formal'] . ' - ' . $dts['t_formal']; ?></th>
-                                    </tr>
-                                    <tr>
-                                        <th>Kamar</th>
-                                        <th>:</th>
-                                        <th><?= $dts['kamar'] . ' / ' . $dts['komplek']; ?></th>
-                                    </tr>
-                                </table>
+                        <div class="box-header">
+                            <h3 class="box-title">Detail Data Santri</h3>
+                        </div><!-- /.box-header -->
+                        <div class="box-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <table class="table table-sm">
+                                        <tr>
+                                            <th>NIS</th>
+                                            <th>:</th>
+                                            <th><?= $dts['nis']; ?></th>
+                                        </tr>
+                                        <tr>
+                                            <th>Nama</th>
+                                            <th>:</th>
+                                            <th><?= $dts['nama']; ?></th>
+                                        </tr>
+                                        <tr>
+                                            <th>Alamat</th>
+                                            <th>:</th>
+                                            <th><?= $dts['desa'] . ' - ' . $dts['kec'] . ' - ' . $dts['kab']; ?></th>
+                                        </tr>
+                                        <tr>
+                                            <th>Kelas</th>
+                                            <th>:</th>
+                                            <th><?= $dts['k_formal'] . ' - ' . $dts['t_formal']; ?></th>
+                                        </tr>
+                                        <tr>
+                                            <th>Kamar</th>
+                                            <th>:</th>
+                                            <th><?= $dts['kamar'] . ' / ' . $dts['komplek']; ?></th>
+                                        </tr>
+                                    </table>
+                                </div>
+                                <div class="col-md-6">
+                                    <form action="" method="post">
+                                        <input type="hidden" name="nis" value="<?= $nis; ?>">
+                                        <div class="form-group">
+                                            <label for="">Alasan</label>
+                                            <textarea name="alasan" id="" cols="30" rows="3" required class="form-control"></textarea>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="">Tanggal Mutasi</label>
+                                            <input type="date" name="tgl_mutasi" id="" class="form-control" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <button class="btn btn-success btn-sm" type="submit" name="simpan"><i class="fa fa-save"></i> Simpan Data</button>
+                                        </div>
+                                    </form>
+                                </div>
                             </div>
-                            <div class="col-md-6">
-                                <form action="" method="post">
-                                    <input type="hidden" name="nis" value="<?= $nis; ?>">
-                                    <div class="form-group">
-                                        <label for="">Alasan</label>
-                                        <textarea name="alasan" id="" cols="30" rows="3" required
-                                            class="form-control"></textarea>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="">Tanggal Mutasi</label>
-                                        <input type="date" name="tgl_mutasi" id="" class="form-control" required>
-                                    </div>
-                                    <div class="form-group">
-                                        <button class="btn btn-success btn-sm" type="submit" name="simpan"><i
-                                                class="fa fa-save"></i> Simpan Data</button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    </div><!-- /.box-body -->
+                        </div><!-- /.box-body -->
                     <?php } ?>
                 </div><!-- /.box -->
 
@@ -125,18 +122,18 @@
 <script src="plugins/datatables/dataTables.bootstrap.min.js"></script>
 <script src="plugins/sw/sweetalert2.all.min.js"></script>
 <script>
-$(function() {
-    $("#pilihv2").select2();
-    $("#example1_bst").DataTable();
-    $('#example2').DataTable({
-        "paging": true,
-        "lengthChange": false,
-        "searching": false,
-        "ordering": true,
-        "info": true,
-        "autoWidth": false
+    $(function() {
+        $("#pilihv2").select2();
+        $("#example1_bst").DataTable();
+        $('#example2').DataTable({
+            "paging": true,
+            "lengthChange": false,
+            "searching": false,
+            "ordering": true,
+            "info": true,
+            "autoWidth": false
+        });
     });
-});
 </script>
 <?php
 include 'foot.php';
@@ -155,7 +152,7 @@ if (isset($_POST['simpan'])) {
     
 Nama : ' . $dts['nama'] . '
 Alamat : ' . $dts['desa'] . '-' . $dts['kec'] . '-' . $dts['kab'] . '
-Sekolah : ' . $dts['t_formal'] . '
+Sekolah : ' . $dts['k_formal'] . ' ' . $dts['t_formal'] . '
 Tgl Mutasi : ' . $tgl_mutasi . '
 
 *_dimohon kepada BENDAHARA PESANTREN untuk segera mengecek tanggungan nya_*
