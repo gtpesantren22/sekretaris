@@ -153,7 +153,7 @@ Terimakasih';
         curl_setopt_array(
             $curl2,
             array(
-                CURLOPT_URL => 'http://8.215.26.187:3000/api/sendMessageGroup',
+                CURLOPT_URL => 'http://156.67.221.155:3000/api/sendMessageGroup',
                 CURLOPT_RETURNTRANSFER => true,
                 CURLOPT_ENCODING => '',
                 CURLOPT_MAXREDIRS => 10,
