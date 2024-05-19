@@ -37,19 +37,19 @@
                                 </thead>
                                 <tbody>
                                     <?php
-                  $no = 1;
-                  $sql = mysqli_query($conn, "SELECT * FROM tb_santri WHERE jkl = 'Laki-laki' AND aktif = 'Y' ");
-                  while ($dt = mysqli_fetch_assoc($sql)) { ?>
-                                    <tr>
-                                        <td><?= $no++; ?></td>
-                                        <td><?= $dt['nis']; ?></td>
-                                        <td><?= $dt['nama']; ?></td>
-                                        <td><?= $dt['tempat'] . ', ' . $dt['tanggal']; ?></td>
-                                        <td><?= $dt['desa'] . ' - ' . $dt['kec'] . ' - ' . $dt['kab']; ?></td>
-                                        <td><?= $dt['k_formal'] . ' - ' . $dt['t_formal']; ?></td>
-                                        <td><?= $dt['k_madin'] . ' - ' . $dt['r_madin']; ?></td>
-                                        <td>X</td>
-                                    </tr>
+                                    $no = 1;
+                                    $sql = mysqli_query($conn, "SELECT * FROM tb_santri WHERE jkl = 'Laki-laki' AND aktif = 'Y' ");
+                                    while ($dt = mysqli_fetch_assoc($sql)) { ?>
+                                        <tr>
+                                            <td><?= $no++; ?></td>
+                                            <td><?= $dt['nis']; ?></td>
+                                            <td><?= $dt['nama']; ?></td>
+                                            <td><?= $dt['tempat'] . ', ' . $dt['tanggal']; ?></td>
+                                            <td><?= $dt['desa'] . ' - ' . $dt['kec'] . ' - ' . $dt['kab']; ?></td>
+                                            <td><?= $dt['k_formal'] . ' - ' . $dt['t_formal']; ?></td>
+                                            <td><?= $dt['k_madin'] . ' - ' . $dt['r_madin']; ?></td>
+                                            <td><a href="tdlSantri.php?nis=<?= $dt['nis'] ?>" class="btn btn-xs btn-success">Detail</a></td>
+                                        </tr>
                                     <?php } ?>
                                 </tbody>
                             </table>
@@ -71,16 +71,16 @@
 <script src="plugins/datatables/jquery.dataTables.min.js"></script>
 <script src="plugins/datatables/dataTables.bootstrap.min.js"></script>
 <script>
-$(function() {
-    $("#example1_bst").DataTable();
-    $('#example2').DataTable({
-        "paging": true,
-        "lengthChange": false,
-        "searching": false,
-        "ordering": true,
-        "info": true,
-        "autoWidth": false
+    $(function() {
+        $("#example1_bst").DataTable();
+        $('#example2').DataTable({
+            "paging": true,
+            "lengthChange": false,
+            "searching": false,
+            "ordering": true,
+            "info": true,
+            "autoWidth": false
+        });
     });
-});
 </script>
 <?php include 'foot.php'; ?>
