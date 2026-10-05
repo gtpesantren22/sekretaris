@@ -1,6 +1,10 @@
 <?php
 include 'head.php';
 
+// Tingkatkan batas waktu dan memori untuk sinkronisasi massal
+@set_time_limit(600);
+@ini_set('memory_limit', '512M');
+
 // Pastikan CSRF token tersedia
 if (empty($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
@@ -8,6 +12,7 @@ if (empty($_SESSION['csrf_token'])) {
 
 $pesan = '';
 $tipe_pesan = '';
+$error_details = [];
 $stat = [
     'total_sentral' => 0,
     'total_sentral_aktif' => 0,
@@ -23,7 +28,7 @@ $stat = [
 
 // Cek koneksi db_sentral
 $sentral_connected = false;
-if ($conn_sentral && !mysqli_connect_errno()) {
+if (isset($conn_sentral) && $conn_sentral instanceof mysqli && !mysqli_connect_errno()) {
     $sentral_connected = true;
     
     // Hitung jumlah data santri di db_sentral
@@ -43,8 +48,8 @@ if ($conn_sentral && !mysqli_connect_errno()) {
 // Hitung jumlah data santri di db_sekretaris
 $q_count_sekretaris = mysqli_query($conn, "SELECT 
     COUNT(*) as total,
-    SUM(CASE WHEN aktif = 'Y' THEN 1 ELSE 0 END) as total_aktif,
-    SUM(CASE WHEN aktif != 'Y' OR aktif IS NULL THEN 1 ELSE 0 END) as total_nonaktif
+    SUM(CASE WHEN aktif = 'Y' OR aktif = '1' THEN 1 ELSE 0 END) as total_aktif,
+    SUM(CASE WHEN aktif != 'Y' AND aktif != '1' OR aktif IS NULL THEN 1 ELSE 0 END) as total_nonaktif
 FROM tb_santri");
 if ($q_count_sekretaris) {
     $row_sek = mysqli_fetch_assoc($q_count_sekretaris);
@@ -54,10 +59,10 @@ if ($q_count_sekretaris) {
 }
 
 // Proses Sinkronisasi
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sinkron'])) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && (isset($_POST['proses_sinkron']) || isset($_POST['sinkron']))) {
     $csrf = $_POST['csrf_token'] ?? '';
     if (!hash_equals($_SESSION['csrf_token'], $csrf)) {
-        $pesan = "Token keamanan tidak valid. Silakan refresh halaman.";
+        $pesan = "Token keamanan tidak valid. Silakan refresh halaman dan coba kembali.";
         $tipe_pesan = "danger";
     } elseif (!$sentral_connected) {
         $pesan = "Gagal terhubung ke database db_sentral! Pastikan konfigurasi database di koneksi.php sudah benar.";
@@ -65,152 +70,252 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sinkron'])) {
     } else {
         $start_time = microtime(true);
 
-        // Ambil daftar kolom tabel tb_santri di db_sekretaris (target)
-        $target_cols = [];
-        $res_cols = mysqli_query($conn, "SHOW COLUMNS FROM tb_santri");
-        if ($res_cols) {
-            while ($col = mysqli_fetch_assoc($res_cols)) {
-                $target_cols[] = $col['Field'];
+        // Set sql_mode kosong pada sesi saat ini agar tidak error saat ada data terpotong/tipe data fleksibel
+        @mysqli_query($conn, "SET SESSION sql_mode = ''");
+        if ($conn_sentral) {
+            @mysqli_query($conn_sentral, "SET SESSION sql_mode = ''");
+        }
+
+        // 1. Ambil detail skema tabel tb_santri di db_sekretaris (target)
+        $target_col_info = [];
+        $res_target_cols = mysqli_query($conn, "SHOW FULL COLUMNS FROM tb_santri");
+        if ($res_target_cols) {
+            while ($col = mysqli_fetch_assoc($res_target_cols)) {
+                $target_col_info[$col['Field']] = [
+                    'type' => strtolower($col['Type']),
+                    'null' => strtoupper($col['Null']) === 'YES',
+                    'key'  => $col['Key'],
+                    'default' => $col['Default'],
+                    'extra' => strtolower($col['Extra'])
+                ];
             }
         }
 
-        if (empty($target_cols)) {
+        // 2. Ambil skema tabel tb_santri di db_sentral (sumber)
+        $source_cols = [];
+        $res_source_cols = mysqli_query($conn_sentral, "SHOW COLUMNS FROM tb_santri");
+        if ($res_source_cols) {
+            while ($col = mysqli_fetch_assoc($res_source_cols)) {
+                $source_cols[] = $col['Field'];
+            }
+        }
+
+        if (empty($target_col_info)) {
             $pesan = "Tabel tb_santri pada db_sekretaris tidak ditemukan!";
             $tipe_pesan = "danger";
+        } elseif (empty($source_cols)) {
+            $pesan = "Tabel tb_santri pada db_sentral tidak ditemukan atau tidak memiliki kolom!";
+            $tipe_pesan = "danger";
         } else {
-            // Ambil semua data santri dari db_sentral
-            $res_sentral = mysqli_query($conn_sentral, "SELECT * FROM tb_santri");
+            // Helper untuk membersihkan dan menyesuaikan panjang data sesuai kolom target
+            $sanitize_val = function($val, $meta) {
+                if ($val === null) return null;
+                $val = (string)$val;
+                $type = $meta['type'] ?? '';
+                if (preg_match('/^(varchar|char)\((\d+)\)/i', $type, $matches)) {
+                    $max_len = (int)$matches[2];
+                    if (mb_strlen($val, 'UTF-8') > $max_len) {
+                        $val = mb_substr($val, 0, $max_len, 'UTF-8');
+                    }
+                }
+                return $val;
+            };
 
-            if ($res_sentral) {
-                $inserted = 0;
-                $updated = 0;
-                $failed = 0;
+            // Ambil peta NIS yang sudah ada di db_sekretaris
+            $existing_nis_map = [];
+            $res_existing = mysqli_query($conn, "SELECT nis FROM tb_santri");
+            if ($res_existing) {
+                while ($row_e = mysqli_fetch_assoc($res_existing)) {
+                    $val_nis = trim((string)($row_e['nis'] ?? ''));
+                    if ($val_nis !== '') {
+                        $existing_nis_map[$val_nis] = true;
+                    }
+                }
+            }
 
-                mysqli_begin_transaction($conn);
+            // Tentukan kolom yang akan di-INSERT ke db_sekretaris
+            // Semua kolom target selain auto_increment id
+            $insert_target_cols = [];
+            foreach ($target_col_info as $field_name => $meta) {
+                if (strpos($meta['extra'], 'auto_increment') !== false) {
+                    continue; // Skip auto_increment field
+                }
+                $insert_target_cols[] = $field_name;
+            }
 
-                try {
-                    while ($santri = mysqli_fetch_assoc($res_sentral)) {
-                        $nis = $santri['nis'] ?? null;
-                        if (!$nis) {
-                            $failed++;
-                            continue;
-                        }
+            // Tentukan kolom yang akan di-UPDATE di db_sekretaris
+            // Semua kolom yang ada di db_sentral dan db_sekretaris kecuali nis dan auto_increment id
+            $update_target_cols = [];
+            foreach ($insert_target_cols as $field_name) {
+                if ($field_name === 'nis') continue;
+                if (in_array($field_name, $source_cols)) {
+                    $update_target_cols[] = $field_name;
+                }
+            }
 
-                        // Filter dan normalisasi kolom yang sesuai dengan tabel target db_sekretaris
-                        $matched_data = [];
-                        foreach ($santri as $key => $val) {
-                            if (in_array($key, $target_cols)) {
-                                // Normalisasi nilai aktif agar konsisten 'Y' atau 'T'
-                                if ($key === 'aktif') {
-                                    $val = (strtoupper((string)$val) === 'Y' || (string)$val === '1') ? 'Y' : 'T';
+            // Siapkan statement INSERT
+            $ins_cols_sql = implode(", ", array_map(function($c) { return "`$c`"; }, $insert_target_cols));
+            $ins_placeholders = implode(", ", array_fill(0, count($insert_target_cols), "?"));
+            $ins_types = str_repeat("s", count($insert_target_cols));
+            $ins_sql = "INSERT INTO tb_santri ($ins_cols_sql) VALUES ($ins_placeholders)";
+            $ins_stmt = mysqli_prepare($conn, $ins_sql);
+
+            // Siapkan statement UPDATE
+            $up_stmt = null;
+            $up_types = '';
+            if (!empty($update_target_cols)) {
+                $up_cols_sql = implode(", ", array_map(function($c) { return "`$c` = ?"; }, $update_target_cols));
+                $up_types = str_repeat("s", count($update_target_cols)) . "s"; // +1 untuk WHERE nis = ?
+                $up_sql = "UPDATE tb_santri SET $up_cols_sql WHERE `nis` = ?";
+                $up_stmt = mysqli_prepare($conn, $up_sql);
+            }
+
+            if (!$ins_stmt) {
+                $pesan = "Gagal mempersiapkan query INSERT: " . mysqli_error($conn);
+                $tipe_pesan = "danger";
+            } else {
+                // Ambil semua data santri dari db_sentral
+                $res_sentral = mysqli_query($conn_sentral, "SELECT * FROM tb_santri");
+
+                if ($res_sentral) {
+                    $inserted = 0;
+                    $updated = 0;
+                    $failed = 0;
+
+                    mysqli_begin_transaction($conn);
+
+                    try {
+                        while ($santri = mysqli_fetch_assoc($res_sentral)) {
+                            $nis = isset($santri['nis']) ? trim((string)$santri['nis']) : '';
+                            if ($nis === '') {
+                                $failed++;
+                                if (count($error_details) < 10) {
+                                    $nama_err = $santri['nama'] ?? 'Tanpa Nama';
+                                    $error_details[] = "Dilewati: Santri '$nama_err' tidak memiliki NIS.";
                                 }
-                                $matched_data[$key] = $val;
-                            }
-                        }
-
-                        // Cek apakah NIS sudah ada di db_sekretaris
-                        $check_stmt = mysqli_prepare($conn, "SELECT nis FROM tb_santri WHERE nis = ? LIMIT 1");
-                        mysqli_stmt_bind_param($check_stmt, "s", $nis);
-                        mysqli_stmt_execute($check_stmt);
-                        mysqli_stmt_store_result($check_stmt);
-                        $exists = (mysqli_stmt_num_rows($check_stmt) > 0);
-                        mysqli_stmt_close($check_stmt);
-
-                        if ($exists) {
-                            // UPDATE data
-                            $update_parts = [];
-                            $update_vals = [];
-                            $types = '';
-
-                            foreach ($matched_data as $col_name => $col_val) {
-                                if ($col_name === 'nis') continue;
-                                $update_parts[] = "`$col_name` = ?";
-                                $update_vals[] = $col_val;
-                                $types .= 's';
+                                continue;
                             }
 
-                            if (!empty($update_parts)) {
-                                $update_sql = "UPDATE tb_santri SET " . implode(", ", $update_parts) . " WHERE nis = ?";
-                                $update_vals[] = $nis;
-                                $types .= 's';
+                            // Normalisasi status aktif:
+                            // Jika bernilai Y/1/Aktif/kosong pada santri baru -> default 'Y'
+                            // Jika bernilai T/0/Nonaktif/Mutasi/Keluar -> 'T'
+                            $raw_aktif = isset($santri['aktif']) ? strtoupper(trim((string)$santri['aktif'])) : '';
+                            if ($raw_aktif === 'T' || $raw_aktif === '0' || $raw_aktif === 'NONAKTIF' || $raw_aktif === 'MUTASI' || $raw_aktif === 'KELUAR') {
+                                $aktif = 'T';
+                            } else {
+                                $aktif = 'Y';
+                            }
+                            $santri['aktif'] = $aktif;
 
-                                $up_stmt = mysqli_prepare($conn, $update_sql);
+                            // Normalisasi Jenis Kelamin (jkl):
+                            // Pastikan bernilai 'Laki-laki' atau 'Perempuan'
+                            if (isset($santri['jkl'])) {
+                                $raw_jkl = strtoupper(trim((string)$santri['jkl']));
+                                if (strpos($raw_jkl, 'L') === 0 || strpos($raw_jkl, 'PUTRA') !== false) {
+                                    $santri['jkl'] = 'Laki-laki';
+                                } elseif (strpos($raw_jkl, 'P') === 0 || strpos($raw_jkl, 'PUTRI') !== false) {
+                                    $santri['jkl'] = 'Perempuan';
+                                }
+                            }
+
+                            if (isset($existing_nis_map[$nis])) {
+                                // UPDATE data santri lama
                                 if ($up_stmt) {
-                                    mysqli_stmt_bind_param($up_stmt, $types, ...$update_vals);
+                                    $up_params = [];
+                                    foreach ($update_target_cols as $c) {
+                                        $val = $santri[$c] ?? '';
+                                        $meta = $target_col_info[$c] ?? [];
+                                        $up_params[] = $sanitize_val($val, $meta);
+                                    }
+                                    $up_params[] = $nis; // Parameter WHERE nis = ?
+
+                                    mysqli_stmt_bind_param($up_stmt, $up_types, ...$up_params);
                                     if (mysqli_stmt_execute($up_stmt)) {
                                         $updated++;
                                     } else {
                                         $failed++;
+                                        if (count($error_details) < 10) {
+                                            $error_details[] = "Gagal Update NIS {$nis}: " . mysqli_stmt_error($up_stmt);
+                                        }
                                     }
-                                    mysqli_stmt_close($up_stmt);
-                                } else {
-                                    $failed++;
                                 }
-                            }
-                        } else {
-                            // INSERT data baru
-                            $cols_insert = [];
-                            $placeholders = [];
-                            $insert_vals = [];
-                            $types = '';
+                            } else {
+                                // INSERT santri baru
+                                $ins_params = [];
+                                foreach ($insert_target_cols as $c) {
+                                    $meta = $target_col_info[$c] ?? [];
+                                    if (isset($santri[$c]) && $santri[$c] !== null) {
+                                        $ins_params[] = $sanitize_val($santri[$c], $meta);
+                                    } else {
+                                        // Berikan nilai default aman jika kolom target tidak ada di db_sentral
+                                        if (!empty($meta['null'])) {
+                                            $ins_params[] = null;
+                                        } elseif (isset($meta['default']) && $meta['default'] !== null) {
+                                            $ins_params[] = (string)$meta['default'];
+                                        } else {
+                                            $col_type = $meta['type'] ?? '';
+                                            if (strpos($col_type, 'int') !== false || strpos($col_type, 'decimal') !== false || strpos($col_type, 'float') !== false) {
+                                                $ins_params[] = '0';
+                                            } elseif (strpos($col_type, 'date') !== false) {
+                                                $ins_params[] = '1970-01-01';
+                                            } else {
+                                                $ins_params[] = '';
+                                            }
+                                        }
+                                    }
+                                }
 
-                            foreach ($matched_data as $col_name => $col_val) {
-                                $cols_insert[] = "`$col_name`";
-                                $placeholders[] = "?";
-                                $insert_vals[] = $col_val;
-                                $types .= 's';
-                            }
-
-                            $ins_sql = "INSERT INTO tb_santri (" . implode(", ", $cols_insert) . ") VALUES (" . implode(", ", $placeholders) . ")";
-                            $ins_stmt = mysqli_prepare($conn, $ins_sql);
-                            if ($ins_stmt) {
-                                mysqli_stmt_bind_param($ins_stmt, $types, ...$insert_vals);
+                                mysqli_stmt_bind_param($ins_stmt, $ins_types, ...$ins_params);
                                 if (mysqli_stmt_execute($ins_stmt)) {
                                     $inserted++;
+                                    $existing_nis_map[$nis] = true;
                                 } else {
                                     $failed++;
+                                    if (count($error_details) < 10) {
+                                        $error_details[] = "Gagal Tambah Santri Baru (NIS {$nis}): " . mysqli_stmt_error($ins_stmt);
+                                    }
                                 }
-                                mysqli_stmt_close($ins_stmt);
-                            } else {
-                                $failed++;
                             }
                         }
+
+                        mysqli_commit($conn);
+
+                        $end_time = microtime(true);
+                        $duration = round($end_time - $start_time, 2);
+
+                        $stat['inserted'] = $inserted;
+                        $stat['updated'] = $updated;
+                        $stat['failed'] = $failed;
+                        $stat['waktu'] = $duration;
+
+                        // Refresh total statistik di db_sekretaris setelah sinkron
+                        $q_count_sekretaris = mysqli_query($conn, "SELECT 
+                            COUNT(*) as total,
+                            SUM(CASE WHEN aktif = 'Y' OR aktif = '1' THEN 1 ELSE 0 END) as total_aktif,
+                            SUM(CASE WHEN aktif != 'Y' AND aktif != '1' OR aktif IS NULL THEN 1 ELSE 0 END) as total_nonaktif
+                        FROM tb_santri");
+                        if ($q_count_sekretaris) {
+                            $row_sek = mysqli_fetch_assoc($q_count_sekretaris);
+                            $stat['total_sekretaris'] = (int)($row_sek['total'] ?? 0);
+                            $stat['total_sekretaris_aktif'] = (int)($row_sek['total_aktif'] ?? 0);
+                            $stat['total_sekretaris_nonaktif'] = (int)($row_sek['total_nonaktif'] ?? 0);
+                        }
+
+                        $pesan = "Sinkronisasi selesai dalam {$duration} detik. Santri Baru Ditambahkan: {$inserted}, Data Diperbarui: {$updated}" . ($failed > 0 ? ", Gagal/Dilewati: {$failed}" : "");
+                        $tipe_pesan = ($failed > 0 && $inserted === 0 && $updated === 0) ? "danger" : "success";
+
+                    } catch (Exception $e) {
+                        mysqli_rollback($conn);
+                        $pesan = "Terjadi kesalahan sistem saat sinkronisasi: " . $e->getMessage();
+                        $tipe_pesan = "danger";
                     }
 
-                    mysqli_commit($conn);
-
-                    $end_time = microtime(true);
-                    $duration = round($end_time - $start_time, 2);
-
-                    $stat['inserted'] = $inserted;
-                    $stat['updated'] = $updated;
-                    $stat['failed'] = $failed;
-                    $stat['waktu'] = $duration;
-
-                    // Refresh total sekretaris
-                    $q_count_sekretaris = mysqli_query($conn, "SELECT 
-                        COUNT(*) as total,
-                        SUM(CASE WHEN aktif = 'Y' THEN 1 ELSE 0 END) as total_aktif,
-                        SUM(CASE WHEN aktif != 'Y' OR aktif IS NULL THEN 1 ELSE 0 END) as total_nonaktif
-                    FROM tb_santri");
-                    if ($q_count_sekretaris) {
-                        $row_sek = mysqli_fetch_assoc($q_count_sekretaris);
-                        $stat['total_sekretaris'] = (int)($row_sek['total'] ?? 0);
-                        $stat['total_sekretaris_aktif'] = (int)($row_sek['total_aktif'] ?? 0);
-                        $stat['total_sekretaris_nonaktif'] = (int)($row_sek['total_nonaktif'] ?? 0);
-                    }
-
-                    $pesan = "Sinkronisasi berhasil diselesaikan dalam {$duration} detik! Data Ditambahkan: {$inserted}, Data Diperbarui: {$updated}" . ($failed > 0 ? ", Gagal: {$failed}" : "");
-                    $tipe_pesan = "success";
-
-                } catch (Exception $e) {
-                    mysqli_rollback($conn);
-                    $pesan = "Terjadi kesalahan saat sinkronisasi: " . $e->getMessage();
+                    mysqli_stmt_close($ins_stmt);
+                    if ($up_stmt) mysqli_stmt_close($up_stmt);
+                } else {
+                    $pesan = "Gagal membaca data santri dari db_sentral: " . mysqli_error($conn_sentral);
                     $tipe_pesan = "danger";
                 }
-            } else {
-                $pesan = "Gagal membaca data dari tabel tb_santri pada db_sentral!";
-                $tipe_pesan = "danger";
             }
         }
     }
@@ -238,6 +343,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sinkron'])) {
                 <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
                 <h4><i class="icon fa fa-<?= ($tipe_pesan === 'success') ? 'check' : 'ban'; ?>"></i> <?= ($tipe_pesan === 'success') ? 'Berhasil!' : 'Perhatian!'; ?></h4>
                 <?= htmlspecialchars($pesan, ENT_QUOTES, 'UTF-8'); ?>
+                <?php if (!empty($error_details)): ?>
+                    <ul style="margin-top: 8px; margin-bottom: 0;">
+                        <?php foreach ($error_details as $err): ?>
+                            <li><code><?= htmlspecialchars($err, ENT_QUOTES, 'UTF-8'); ?></code></li>
+                        <?php endforeach; ?>
+                    </ul>
+                <?php endif; ?>
             </div>
         <?php endif; ?>
 
@@ -246,7 +358,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sinkron'])) {
             <div class="col-md-6 col-sm-12">
                 <div class="box box-primary">
                     <div class="box-header with-border">
-                        <h3 class="box-title"><i class="fa fa-database"></i> Status Database & Rincian Status</h3>
+                        <h3 class="box-title"><i class="fa fa-database"></i> Status Database & Rincian Data</h3>
                     </div>
                     <div class="box-body">
                         <table class="table table-bordered table-striped">
@@ -297,16 +409,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sinkron'])) {
                         </p>
 
                         <div class="callout callout-info" style="margin-bottom: 20px;">
-                            <h4><i class="fa fa-info-circle"></i> Mekanisme Status:</h4>
+                            <h4><i class="fa fa-info-circle"></i> Mekanisme Sinkronisasi:</h4>
                             <ul style="padding-left: 20px;">
-                                <li>Status <strong>Aktif (Y)</strong> dan <strong>Non-Aktif (T)</strong> dari DB Sentral akan otomatis disinkronkan.</li>
-                                <li>Santri yang mutasi/keluar di DB Sentral akan otomatis ter-update menjadi non-aktif di DB Sekretaris.</li>
-                                <li>Data baru (NIS belum ada) otomatis ditambahkan.</li>
+                                <li>Status <strong>Aktif (Y)</strong> dan <strong>Non-Aktif (T)</strong> disesuaikan persis dari DB Sentral.</li>
+                                <li>Santri yang mutasi/keluar di DB Sentral akan otomatis ter-update statusnya di DB Sekretaris.</li>
+                                <li>Data santri baru (NIS belum terdaftar di Sekretaris) otomatis ditambahkan.</li>
                             </ul>
                         </div>
 
-                        <form action="" method="post" id="formSinkron" onsubmit="return konfirmasiSinkron();">
+                        <form action="" method="post" id="formSinkron">
                             <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token'], ENT_QUOTES, 'UTF-8'); ?>">
+                            <input type="hidden" name="proses_sinkron" value="1">
                             <button type="submit" name="sinkron" id="btnSinkron" class="btn btn-primary btn-lg btn-block" <?= !$sentral_connected ? 'disabled' : ''; ?>>
                                 <i class="fa fa-refresh" id="iconSync"></i> Mulai Sinkronisasi Sekarang
                             </button>
@@ -331,7 +444,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sinkron'])) {
                                         <span class="info-box-icon"><i class="fa fa-user-plus"></i></span>
                                         <div class="info-box-content">
                                             <span class="info-box-text">Data Baru Ditambahkan</span>
-                                            <span class="info-box-number"><?= $stat['inserted']; ?></span>
+                                            <span class="info-box-number"><?= number_format($stat['inserted'], 0, ',', '.'); ?></span>
                                         </div>
                                     </div>
                                 </div>
@@ -340,7 +453,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sinkron'])) {
                                         <span class="info-box-icon"><i class="fa fa-pencil-square-o"></i></span>
                                         <div class="info-box-content">
                                             <span class="info-box-text">Data Diperbarui</span>
-                                            <span class="info-box-number"><?= $stat['updated']; ?></span>
+                                            <span class="info-box-number"><?= number_format($stat['updated'], 0, ',', '.'); ?></span>
                                         </div>
                                     </div>
                                 </div>
@@ -349,7 +462,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sinkron'])) {
                                         <span class="info-box-icon"><i class="fa fa-exclamation-triangle"></i></span>
                                         <div class="info-box-content">
                                             <span class="info-box-text">Gagal / Dilewati</span>
-                                            <span class="info-box-number"><?= $stat['failed']; ?></span>
+                                            <span class="info-box-number"><?= number_format($stat['failed'], 0, ',', '.'); ?></span>
                                         </div>
                                     </div>
                                 </div>
@@ -373,19 +486,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sinkron'])) {
 </div><!-- /.content-wrapper -->
 
 <script>
-function konfirmasiSinkron() {
-    var yakin = confirm("Apakah Anda yakin ingin menyinkronkan data santri dari DB Sentral ke DB Sekretaris?");
-    if (yakin) {
-        var btn = document.getElementById('btnSinkron');
-        var icon = document.getElementById('iconSync');
-        btn.disabled = true;
-        btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Sedang Memproses Sinkronisasi...';
-        // Submit form programmatically
-        document.getElementById('formSinkron').submit();
-        return false;
+document.addEventListener('DOMContentLoaded', function() {
+    var form = document.getElementById('formSinkron');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            var konfirmasi = confirm("Apakah Anda yakin ingin menyinkronkan seluruh data santri dari DB Sentral ke DB Sekretaris?");
+            if (!konfirmasi) {
+                e.preventDefault();
+                return false;
+            }
+            var btn = document.getElementById('btnSinkron');
+            if (btn) {
+                setTimeout(function() {
+                    btn.setAttribute('disabled', 'disabled');
+                    btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Sedang Memproses Sinkronisasi...';
+                }, 10);
+            }
+            return true;
+        });
     }
-    return false;
-}
+});
 </script>
 
 <?php include 'foot.php'; ?>
+
