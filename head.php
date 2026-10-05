@@ -1,18 +1,17 @@
 <?php
-session_start();
-if (!isset($_SESSION['qwertyuioplkjhgfdsa'])) {
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
-    echo "
-    <script>
-    window.location = 'login.php';
-    </script>
-    ";
+if (!isset($_SESSION['qwertyuioplkjhgfdsa']) || $_SESSION['qwertyuioplkjhgfdsa'] !== true) {
+    header("Location: login.php");
+    exit;
 }
 
 include 'koneksi.php';
 
-$nama_user = $_SESSION['nama'];
-$level_user = $_SESSION['level'];
+$nama_user = htmlspecialchars($_SESSION['nama'] ?? '', ENT_QUOTES, 'UTF-8');
+$level_user = htmlspecialchars($_SESSION['level'] ?? '', ENT_QUOTES, 'UTF-8');
 
 $bulan = array("", "Januari", "Februari", "Maret", "April", "Mei", "Juni", "July", "Agustus", "September", "Oktober", "November", "Desember");
 ?>
@@ -147,12 +146,18 @@ $bulan = array("", "Januari", "Februari", "Maret", "April", "Mei", "Juni", "July
                         <ul class="treeview-menu">
                             <li class=""><a href="santri_pa.php"><i class="fa fa-circle-o"></i> Putra</a></li>
                             <li><a href="santri_pi.php"><i class="fa fa-circle-o"></i> Putri</a></li>
+                            <li><a href="santri_sinkron.php"><i class="fa fa-refresh text-aqua"></i> Sinkron Data</a></li>
                         </ul>
                     </li>
-                    <li>
-                        <a href="mutasi.php">
-                            <i class="fa fa-sign-out"></i> <span>Mutasi Santri</span>
+                    <li class="treeview">
+                        <a href="#">
+                            <i class="fa fa-sign-out"></i> <span>Mutasi Santri</span> <i
+                                class="fa fa-angle-left pull-right"></i>
                         </a>
+                        <ul class="treeview-menu">
+                            <li class=""><a href="mutasi.php"><i class="fa fa-circle-o"></i> Data Mutasi</a></li>
+                            <li><a href="mutasi_rekap.php"><i class="fa fa-file-excel-o text-green"></i> Rekap & Export Excel</a></li>
+                        </ul>
                     </li>
                     <li class="treeview">
                         <a href="#">

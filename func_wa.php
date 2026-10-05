@@ -1,43 +1,100 @@
 <?php
 
-function kirim_person($key, $no_hp, $pesan)
+/**
+ * Memastikan tabel setting tersedia di database
+ */
+function init_table_setting()
 {
-    $curl2 = curl_init();
-    curl_setopt_array(
-        $curl2,
-        array(
-            CURLOPT_URL => 'http://31.97.179.141:3000/api/sendMessage',
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_ENCODING => '',
-            CURLOPT_MAXREDIRS => 10,
-            CURLOPT_TIMEOUT => 0,
-            CURLOPT_FOLLOWLOCATION => true,
-            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-            CURLOPT_CUSTOMREQUEST => 'POST',
-            CURLOPT_POSTFIELDS => 'apiKey=' . $key . '&phone=' . $no_hp . '&message=' . $pesan,
-        )
-    );
-    $response = curl_exec($curl2);
-    curl_close($curl2);
+    global $conn;
+    if ($conn) {
+        $create_sql = "CREATE TABLE IF NOT EXISTS setting (
+            id INT(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+            nama_key VARCHAR(100) NOT NULL UNIQUE,
+            isi_key TEXT NOT NULL
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
+        mysqli_query($conn, $create_sql);
+    }
 }
 
-function kirim_group($key, $id_group, $pesan)
+// Jalankan inisialisasi tabel setting
+init_table_setting();
+
+/**
+ * Kirim Pesan ke Grup WhatsApp
+ */
+function kirim_wa_group($pesan, $groupId = '120363028015516743@g.us')
 {
-    $curl2 = curl_init();
-    curl_setopt_array(
-        $curl2,
-        array(
-            CURLOPT_URL => 'http://31.97.179.141:3000/api/sendMessageGroup',
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_ENCODING => '',
-            CURLOPT_MAXREDIRS => 10,
-            CURLOPT_TIMEOUT => 0,
-            CURLOPT_FOLLOWLOCATION => true,
-            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-            CURLOPT_CUSTOMREQUEST => 'POST',
-            CURLOPT_POSTFIELDS => 'apiKey=' . $key . '&id_group=' . $id_group . '&message=' . $pesan,
-        )
-    );
-    $response = curl_exec($curl2);
-    curl_close($curl2);
+    global $conn;
+
+    // Ambil apiKey dari tabel setting
+    $apiKey = '';
+    if ($conn) {
+        $q = mysqli_query($conn, "SELECT isi_key FROM setting WHERE nama_key = 'apiKey' LIMIT 1");
+        if ($q && $row = mysqli_fetch_assoc($q)) {
+            $apiKey = trim($row['isi_key']);
+        }
+    }
+
+    $payload = [
+        'apiKey' => $apiKey,
+        'groupId' => $groupId,
+        'message' => $pesan,
+        'sessionId' => 'default'
+    ];
+
+    $json_payload = json_encode($payload);
+
+    $ch = curl_init();
+    curl_setopt_array($ch, [
+        CURLOPT_URL => 'https://wadwk.ppdwk.site/send-group',
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_TIMEOUT => 10,
+        CURLOPT_POST => true,
+        CURLOPT_POSTFIELDS => $json_payload,
+        CURLOPT_HTTPHEADER => [
+            'Content-Type: application/json',
+            'Content-Length: ' . strlen($json_payload)
+        ],
+        CURLOPT_SSL_VERIFYPEER => false,
+        CURLOPT_SSL_VERIFYHOST => false
+    ]);
+
+    $response = curl_exec($ch);
+    curl_close($ch);
+
+    return $response;
+}
+
+/**
+ * Format Notifikasi Mutasi Baru (Permohonan Pengecekan Tanggungan)
+ */
+function notif_mutasi_baru($nama, $alamat, $sekolah, $tgl_mutasi)
+{
+    $pesan = "*INFORMASI MUTASI BARU*\n\n"
+           . "*PERMOHONAN PENGECEKAN TANGGUNGAN SANTRI*\n    \n"
+           . "Nama : " . $nama . "\n"
+           . "Alamat : " . $alamat . "\n"
+           . "Sekolah : " . $sekolah . "\n"
+           . "Tgl Mutasi : " . $tgl_mutasi . "\n\n"
+           . "*_dimohon kepada BENDAHARA PESANTREN untuk segera mengecek tanggungan nya_*\n"
+           . "Terimakasih";
+
+    return kirim_wa_group($pesan);
+}
+
+/**
+ * Format Notifikasi Mutasi Resmi (Permohonan Pengeluaran Data Santri)
+ */
+function notif_mutasi_resmi($nama, $alamat, $sekolah, $tgl_mutasi)
+{
+    $pesan = "*INFORMASI MUTASI*\n\n"
+           . "*PERMOHONAN PENGELUARAN DATA SANTRI*\n    \n"
+           . "Nama : " . $nama . "\n"
+           . "Alamat : " . $alamat . "\n"
+           . "Sekolah : " . $sekolah . "\n"
+           . "Tgl Mutasi : " . $tgl_mutasi . "\n\n"
+           . "*_Surat mutasi sudah diterbitkan oleh SEKRETARIAT. Santri sudah resmi mutasi. Untuk selanjutnya kepada admin DPontren untuk mengeluarkan data santri diatas_*\n"
+           . "Terimakasih";
+
+    return kirim_wa_group($pesan);
 }

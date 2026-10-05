@@ -20,3 +20,5 @@ function rupiah2($angka)
         return $hasil_rupiah =  number_format(0, 0, ',', '.');
     }
 }
+
+include_once 'func_wa.php';

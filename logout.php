@@ -1,15 +1,19 @@
 <?php
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 $_SESSION = [];
+
+if (ini_get("session.use_cookies")) {
+    $params = session_get_cookie_params();
+    setcookie(session_name(), '', time() - 42000,
+        $params["path"], $params["domain"],
+        $params["secure"], $params["httponly"]
+    );
+}
+
 session_destroy();
-session_unset();
 
-// hapus cookie
-// setcookie('id', '', time() - 3600);
-// setcookie('key', '', time() - 3600);
-
-echo "<script>
-window.location.href='login.php';
-</script>";
-?>
-<!-- SAD -->
+header("Location: login.php");
+exit;

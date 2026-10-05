@@ -172,24 +172,11 @@ Terimakasih';
         $sql = mysqli_query($conn, "INSERT INTO mutasi VALUES ('', '$nis', '$alasan', '$tgl_mutasi', 0, '2022/2023') ");
         $sql2 = mysqli_query($conn_santri, "INSERT INTO mutasi VALUES ('', '$nis', '$alasan', '$tgl_mutasi', 0, '2022/2023') ");
         if ($sql && $sql2) {
-
-            $curl2 = curl_init();
-            curl_setopt_array(
-                $curl2,
-                array(
-                    CURLOPT_URL => 'http://31.97.179.141:3000/api/sendMessageGroup',
-                    CURLOPT_RETURNTRANSFER => true,
-                    CURLOPT_ENCODING => '',
-                    CURLOPT_MAXREDIRS => 10,
-                    CURLOPT_TIMEOUT => 0,
-                    CURLOPT_FOLLOWLOCATION => true,
-                    CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-                    CURLOPT_CUSTOMREQUEST => 'POST',
-                    CURLOPT_POSTFIELDS => 'apiKey=f4064efa9d05f66f9be6151ec91ad846&id_group=120363028015516743@g.us&message=' . $psn,
-                )
-            );
-            $response = curl_exec($curl2);
-            curl_close($curl2);
+            $alamat = ($dts['desa'] ?? '') . '-' . ($dts['kec'] ?? '') . '-' . ($dts['kab'] ?? '');
+            $sekolah = ($dts['k_formal'] ?? '') . ' ' . ($dts['t_formal'] ?? '');
+            
+            // Kirim notifikasi WA terpusat ke grup bendahara
+            notif_mutasi_baru($dts['nama'] ?? '-', $alamat, $sekolah, $tgl_mutasi);
 
             echo "
       <script>

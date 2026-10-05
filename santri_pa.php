@@ -1,14 +1,40 @@
-<?php include 'head.php'; ?>
+<?php 
+include 'head.php'; 
+
+// Filter status: 'Y' (Aktif), 'T' (Non-Aktif), 'all' (Semua)
+$status_filter = $_GET['status'] ?? 'Y';
+
+// Hitung total masing-masing status untuk santri putra
+$q_count_pa = mysqli_query($conn, "SELECT 
+    COUNT(*) as total,
+    SUM(CASE WHEN aktif = 'Y' THEN 1 ELSE 0 END) as total_aktif,
+    SUM(CASE WHEN aktif != 'Y' OR aktif IS NULL THEN 1 ELSE 0 END) as total_nonaktif
+FROM tb_santri WHERE jkl = 'Laki-laki'");
+$c_pa = mysqli_fetch_assoc($q_count_pa);
+$c_total = (int)($c_pa['total'] ?? 0);
+$c_aktif = (int)($c_pa['total_aktif'] ?? 0);
+$c_nonaktif = (int)($c_pa['total_nonaktif'] ?? 0);
+
+if ($status_filter === 'T') {
+    $where_sql = "WHERE jkl = 'Laki-laki' AND (aktif != 'Y' OR aktif IS NULL)";
+} elseif ($status_filter === 'all') {
+    $where_sql = "WHERE jkl = 'Laki-laki'";
+} else {
+    $status_filter = 'Y';
+    $where_sql = "WHERE jkl = 'Laki-laki' AND aktif = 'Y'";
+}
+?>
 <div class="content-wrapper">
     <!-- Content Header (Page header) -->
     <section class="content-header">
         <h1>
-            Data Santri
-            <small>Data</small>
+            Data Santri Putra
+            <small><?= ($status_filter === 'Y') ? 'Santri Aktif' : (($status_filter === 'T') ? 'Santri Non-Aktif' : 'Semua Santri'); ?></small>
         </h1>
         <ol class="breadcrumb">
-            <li><a href="#"><i class="fa fa-dashboard"></i> Data</a></li>
-            <li class="active">Data Santri Putara</li>
+            <li><a href="index.php"><i class="fa fa-dashboard"></i> Home</a></li>
+            <li><a href="#">Data</a></li>
+            <li class="active">Data Santri Putra</li>
         </ol>
     </section>
 
@@ -16,9 +42,20 @@
     <section class="content">
         <div class="row">
             <div class="col-xs-12">
-                <div class="box">
-                    <div class="box-header">
-                        <h3 class="box-title">Data Santri Putra</h3>
+                <div class="box box-primary">
+                    <div class="box-header with-border">
+                        <div class="btn-group">
+                            <a href="santri_pa.php?status=Y" class="btn btn-sm <?= ($status_filter === 'Y') ? 'btn-success' : 'btn-default'; ?>">
+                                <i class="fa fa-check-circle"></i> Aktif <span class="badge"><?= $c_aktif; ?></span>
+                            </a>
+                            <a href="santri_pa.php?status=T" class="btn btn-sm <?= ($status_filter === 'T') ? 'btn-danger' : 'btn-default'; ?>">
+                                <i class="fa fa-times-circle"></i> Non-Aktif <span class="badge"><?= $c_nonaktif; ?></span>
+                            </a>
+                            <a href="santri_pa.php?status=all" class="btn btn-sm <?= ($status_filter === 'all') ? 'btn-info' : 'btn-default'; ?>">
+                                <i class="fa fa-users"></i> Semua <span class="badge"><?= $c_total; ?></span>
+                            </a>
+                        </div>
+                        <a href="santri_sinkron.php" class="btn btn-sm btn-primary pull-right"><i class="fa fa-refresh"></i> Sinkron Data Santri</a>
                     </div><!-- /.box-header -->
                     <div class="box-body">
                         <div class="table-responsive">
@@ -32,23 +69,33 @@
                                         <th>Alamat</th>
                                         <th>Formal</th>
                                         <th>Madin</th>
+                                        <th>Status</th>
                                         <th>#</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <?php
                                     $no = 1;
-                                    $sql = mysqli_query($conn, "SELECT * FROM tb_santri WHERE jkl = 'Laki-laki' AND aktif = 'Y' ");
-                                    while ($dt = mysqli_fetch_assoc($sql)) { ?>
+                                    $sql = mysqli_query($conn, "SELECT * FROM tb_santri $where_sql ORDER BY nama ASC");
+                                    while ($dt = mysqli_fetch_assoc($sql)) { 
+                                        $is_aktif = ($dt['aktif'] === 'Y');
+                                    ?>
                                         <tr>
                                             <td><?= $no++; ?></td>
-                                            <td><?= $dt['nis']; ?></td>
-                                            <td><?= $dt['nama']; ?></td>
-                                            <td><?= $dt['tempat'] . ', ' . $dt['tanggal']; ?></td>
-                                            <td><?= $dt['desa'] . ' - ' . $dt['kec'] . ' - ' . $dt['kab']; ?></td>
-                                            <td><?= $dt['k_formal'] . ' - ' . $dt['t_formal']; ?></td>
-                                            <td><?= $dt['k_madin'] . ' - ' . $dt['r_madin']; ?></td>
-                                            <td><a href="tdlSantri.php?nis=<?= $dt['nis'] ?>" class="btn btn-xs btn-success">Detail</a></td>
+                                            <td><?= htmlspecialchars($dt['nis'], ENT_QUOTES, 'UTF-8'); ?></td>
+                                            <td><?= htmlspecialchars($dt['nama'], ENT_QUOTES, 'UTF-8'); ?></td>
+                                            <td><?= htmlspecialchars($dt['tempat'] . ', ' . $dt['tanggal'], ENT_QUOTES, 'UTF-8'); ?></td>
+                                            <td><?= htmlspecialchars($dt['desa'] . ' - ' . $dt['kec'] . ' - ' . $dt['kab'], ENT_QUOTES, 'UTF-8'); ?></td>
+                                            <td><?= htmlspecialchars($dt['k_formal'] . ' - ' . $dt['t_formal'], ENT_QUOTES, 'UTF-8'); ?></td>
+                                            <td><?= htmlspecialchars($dt['k_madin'] . ' - ' . $dt['r_madin'], ENT_QUOTES, 'UTF-8'); ?></td>
+                                            <td>
+                                                <?php if ($is_aktif): ?>
+                                                    <span class="label label-success"><i class="fa fa-check"></i> Aktif</span>
+                                                <?php else: ?>
+                                                    <span class="label label-danger"><i class="fa fa-times"></i> Non-Aktif</span>
+                                                <?php endif; ?>
+                                            </td>
+                                            <td><a href="tdlSantri.php?nis=<?= urlencode($dt['nis']) ?>" class="btn btn-xs btn-success"><i class="fa fa-eye"></i> Detail</a></td>
                                         </tr>
                                     <?php } ?>
                                 </tbody>

@@ -17,10 +17,12 @@
         <div class="row">
             <div class="col-xs-12">
                 <div class="box">
-                    <div class="box-header">
-                        <h3 class="box-title">Data Mutasi Santri
-                        </h3>
-                        <a href="mutasi_add.php" class="btn btn-primary pull-right btn-sm"><i class="fa fa-plus-circle"></i> Tambah Mutasi Baru</a>
+                    <div class="box-header with-border">
+                        <h3 class="box-title">Data Mutasi Santri</h3>
+                        <div class="pull-right">
+                            <a href="mutasi_rekap.php" class="btn btn-success btn-sm"><i class="fa fa-file-excel-o"></i> Rekap & Export Excel</a>
+                            <a href="mutasi_add.php" class="btn btn-primary btn-sm"><i class="fa fa-plus-circle"></i> Tambah Mutasi Baru</a>
+                        </div>
                     </div><!-- /.box-header -->
                     <div class="box-body">
                         <div class="table-responsive">
@@ -39,7 +41,7 @@
                                 <tbody>
                                     <?php
                                     $no = 1;
-                                    $sql = mysqli_query($conn, "SELECT a.*, b.* FROM mutasi a JOIN tb_santri b ON a.nis=b.nis WHERE  aktif = 'Y' ORDER BY id_mutasi DESC ");
+                                    $sql = mysqli_query($conn, "SELECT a.*, b.nama FROM mutasi a LEFT JOIN tb_santri b ON a.nis=b.nis ORDER BY a.id_mutasi DESC ");
                                     while ($dt = mysqli_fetch_assoc($sql)) {
                                         if ($dt['status'] == 0) {
                                             $stas = "<span class='label label-danger'><i class='fa fa-times'></i> Verval Bendahara</span> | <span class='label label-danger'><i class='fa fa-times'></i> Kirim ke Pendataan</span>";
@@ -51,10 +53,10 @@
                                     ?>
                                         <tr>
                                             <td><?= $no++; ?></td>
-                                            <td><?= $dt['nis']; ?></td>
-                                            <td><?= $dt['nama']; ?></td>
-                                            <td><?= $dt['alasan']; ?></td>
-                                            <td><?= $dt['tgl_mutasi']; ?></td>
+                                            <td><?= htmlspecialchars($dt['nis'] ?? '', ENT_QUOTES, 'UTF-8'); ?></td>
+                                            <td><?= htmlspecialchars($dt['nama'] ?? '-', ENT_QUOTES, 'UTF-8'); ?></td>
+                                            <td><?= htmlspecialchars($dt['alasan'] ?? '-', ENT_QUOTES, 'UTF-8'); ?></td>
+                                            <td><?= !empty($dt['tgl_mutasi']) ? date('d/m/Y', strtotime($dt['tgl_mutasi'])) : '-'; ?></td>
                                             <td><?= $stas; ?></td>
                                             <td>
                                                 <?php if ($dt['status'] == 0) { ?>
@@ -134,38 +136,14 @@ if (isset($_POST['send'])) {
     $sql = mysqli_query($conn, "UPDATE mutasi SET status = 2 WHERE id_mutasi = '$id_mutasi' ");
     $sql2 = mysqli_query($conn_santri, "UPDATE mutasi SET status = 2 WHERE id_mutasi = '$id_mutasi' ");
 
-    $dts = mysqli_fetch_assoc(mysqli_query($conn, "SELECT a.tgl_mutasi, b.* FROM mutasi a JOIN tb_santri b ON a.nis=b.nis WHERE a.id_mutasi = $id_mutasi "));
-    $psn = '*INFORMASI MUTASI*
-
-*PERMOHONAN PENGELUARAN DATA SANTRI*
-    
-Nama : ' . $dts['nama'] . '
-Alamat : ' . $dts['desa'] . '-' . $dts['kec'] . '-' . $dts['kab'] . '
-Sekolah : ' . $dts['k_formal'] . ' ' . $dts['t_formal'] . '
-Tgl Mutasi : ' .  $dts['tgl_mutasi'] . '
-
-*_Surat mutasi sudah diterbitkan oleh SEKRETARIAT. Santri sudah resmi mutasi. Untuk selanjutnya kepada admin DPontren untuk mengeluarkan data santri diatas_*
-Terimakasih';
+    $dts = mysqli_fetch_assoc(mysqli_query($conn, "SELECT a.tgl_mutasi, b.* FROM mutasi a LEFT JOIN tb_santri b ON a.nis=b.nis WHERE a.id_mutasi = '$id_mutasi' "));
 
     if ($sql2 && $sql) {
-
-        $curl2 = curl_init();
-        curl_setopt_array(
-            $curl2,
-            array(
-                CURLOPT_URL => 'http://31.97.179.141:3000/api/sendMessageGroup',
-                CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_ENCODING => '',
-                CURLOPT_MAXREDIRS => 10,
-                CURLOPT_TIMEOUT => 0,
-                CURLOPT_FOLLOWLOCATION => true,
-                CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-                CURLOPT_CUSTOMREQUEST => 'POST',
-                CURLOPT_POSTFIELDS => 'apiKey=f4064efa9d05f66f9be6151ec91ad846&id_group=120363028015516743@g.us&message=' . $psn,
-            )
-        );
-        $response = curl_exec($curl2);
-        curl_close($curl2);
+        $alamat = ($dts['desa'] ?? '') . '-' . ($dts['kec'] ?? '') . '-' . ($dts['kab'] ?? '');
+        $sekolah = ($dts['k_formal'] ?? '') . ' ' . ($dts['t_formal'] ?? '');
+        
+        // Kirim notifikasi WA mutasi resmi
+        notif_mutasi_resmi($dts['nama'] ?? '-', $alamat, $sekolah, $dts['tgl_mutasi'] ?? '');
 
         echo "
             <script>

@@ -147,14 +147,10 @@ Terimakasih';
 
 
     if ($sql) {
-
-        kirim_group('f4064efa9d05f66f9be6151ec91ad846', '120363042148360147@g.us', $psn);
-        kirim_group('f4064efa9d05f66f9be6151ec91ad846', '120363042148360147@g.us', $psn);
-        // kirim_person('f4064efa9d05f66f9be6151ec91ad846', '085236924510', $psn);
         echo "
             <script>
             alert('PAK telah disetujui');
-                    document.location.href = 'pak.php';
+            document.location.href = 'pak.php';
             </script>
         ";
     }
@@ -163,30 +159,11 @@ Terimakasih';
 if (isset($_POST['tolak'])) {
     $sql = mysqli_query($conn_sentral, "UPDATE pak SET status = 'ditolak' WHERE kode_pak = '$kode' ");
 
-    $psn = '
-*INFORMASI PENOLAKAN PAK*
-
-Pengajuan PAK dari :
-    
-Lembaga : ' . $lmdr['nama'] . '
-Kode PAK : ' . $kode . '
-
-PAK ditolak oleh SEKRETARIAT dengan catatan :
-*' . mysqli_real_escape_string($conn, $_POST['isi']) . '*
-
-Dimohon kepada KPA terkait untuk memperbaiki nya kembali
-Terimakasih';
-
-
     if ($sql) {
-
-        kirim_group('f4064efa9d05f66f9be6151ec91ad846', '120363042148360147@g.us', $psn);
-        kirim_group('f4064efa9d05f66f9be6151ec91ad846', '120363042148360147@g.us', $psn);
-        // kirim_person('f4064efa9d05f66f9be6151ec91ad846', '085236924510', $psn);
         echo "
             <script>
             alert('PAK telah ditolak');
-                    document.location.href = 'pak.php';
+            document.location.href = 'pak.php';
             </script>
         ";
     }
